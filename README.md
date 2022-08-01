@@ -1,7 +1,7 @@
 # at_pico_w
 Communicate with the atPlatform using a Raspberry Pi Pico W.
 
-Developed with [Micropython](https://micropython.org/).
+Developed with [MicroPython](https://micropython.org/).
 
 ## Usage
 - Fill all the fields of the `settings.json` file (ssid/passw of your Wi-Fi network, and atSign).
