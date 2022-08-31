@@ -1,6 +1,6 @@
 import network # type: ignore
 import time
-from time_client import sync_time, format_time_string, format_time_id
+from ntp_client import sync_time, format_time_string, format_time_id
 import usocket as socket # type: ignore
 import ussl as ssl # type: ignore
 import sys
@@ -55,7 +55,7 @@ def main():
                     print("\n--------------------")
                 elif int(tmp) == 2:
                     tm = str(measure_temp())
-                    verb = "update:" + str(format_time_id()) + ".temperature@" + atSign + " " + tm
+                    verb = "update:" + str(format_time_id()) + ".temperature@secondaryjackal " + tm
                     secondary = find_secondary(atSign)
                     ts = connect_to_secondary(secondary)
                     print('Connected\n')

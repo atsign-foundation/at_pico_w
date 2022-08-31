@@ -5,16 +5,13 @@ import struct
 import machine
 
 # Substract 2 hours, so we get + 2 hours
-t_delta = 2208988800 - 3600*2 # epoch time - 2 hours
-# 1/1/1970 (Unix) vs 1/1/1900 (TIME protocol)
-# We are gonna be given time since 1/1/1900, which is 70 years larger than Unix (system)
+TIMESTAMP_DELTA = 2208988800 - 3600*2 # epoch time - 2 hours
+NTP_QUERY = b'\x1b' + 47 * b'\0'
 
-# Simple TIME protocol client: https://datatracker.ietf.org/doc/html/rfc868
 def sync_time():
     
-    # unused, but simpler than 123 (NTP), useful until 2036
-    a = socket.getaddrinfo('time-a.timefreq.bldrdoc.gov', 37)[0][-1]
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+    a = socket.getaddrinfo('pool.ntp.org', 123)[0][-1]
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP can only be used with SOCK_DGRAM
 
     try:
         s.connect(a)
@@ -24,13 +21,15 @@ def sync_time():
         else:
             raise e
     
-    data = s.read()
-    t = struct.unpack("!I", data)[0]
-    t -= t_delta
+    s.sendto(NTP_QUERY, a)
+    data = s.recv(48)
+    s.close()
+    
+    t = struct.unpack("!I", data[40:44])[0] # Transmit Timestamp field of the NTP packet header
+    t -= TIMESTAMP_DELTA
     tm = time.gmtime(t)
     machine.RTC().datetime((tm[0], tm[1], tm[2], tm[6] + 1, tm[3], tm[4], tm[5], 0))
     print(format_time_string())
-    s.close()
     
 def format_time_string():
     t = time.localtime()
