@@ -55,7 +55,7 @@ def main():
                     print("\n--------------------")
                 elif int(tmp) == 2:
                     tm = str(measure_temp())
-                    verb = "update:" + str(format_time_id()) + ".temperature@secondaryjackal " + tm
+                    verb = "update:" + str(format_time_id()) + ".temperature@" + atSign + " " + tm
                     secondary = find_secondary(atSign)
                     ts = connect_to_secondary(secondary)
                     print('Connected\n')
