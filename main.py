@@ -1,6 +1,6 @@
 import network # type: ignore
 import time
-from time_client import sync_time, format_time_string, format_time_id
+from ntp_client import sync_time, format_time_string, format_time_id
 import usocket as socket # type: ignore
 import ussl as ssl # type: ignore
 import sys
