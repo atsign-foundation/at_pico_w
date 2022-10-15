@@ -40,22 +40,8 @@ def format_time_id():
     return time.time()
 
 def get_week_day(day):
-    d = ''
-    if(day == 0):
-        d = 'Monday'
-    elif(day == 1):
-        d = 'Tuesday'
-    elif(day == 2):
-        d = 'Wednesday'
-    elif(day == 3):
-        d = 'Thursday'
-    elif(day == 4):
-        d = 'Friday'
-    elif(day == 5):
-        d = 'Saturday'
-    elif(day == 6):
-        d = 'Sunday'
-    return d
+    d = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    return d[day]
 
     
     

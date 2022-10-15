@@ -6,15 +6,19 @@ import ussl as ssl # type: ignore
 import sys
 import machine
 import ujson
+from third_party import rsa
+from ubinascii import b2a_base64
+from third_party import string
 
-ssid = password = atSign = ''
+ssid = password = atSign = selfEncryptionKey = ''
+privateKey = []
 
 sensor_temp = machine.ADC(4)
 conversion_factor = 3.3 / (65535)
 
 def main():
     
-    ssid, password, atSign = read_settings()
+    ssid, password, atSign, selfEncryptionKey, privateKey = read_settings()
 
     wlan = network.WLAN(network.STA_IF)  # type: ignore
     wlan.active(True)
@@ -29,15 +33,29 @@ def main():
     sync_time()
     
     while True:
-        print("Welcome! What would you like to do?\n\t1) REPL\n\t2) Temperature sensor menu\n\t3) Exit")
+        print("Welcome! What would you like to do?\n\t1) REPL\n\t2) REPL (from:atSign challenge is completed automatically)\n\t3) Temperature sensor menu\n\t4) Exit")
         opt= input("> ")
         
-        if int(opt) == 1:
+        if int(opt) == 1 or int(opt) == 2:
             secondary = find_secondary(atSign)
             ss = connect_to_secondary(secondary)
 
             print('Connected\n')
             command = '@'
+            
+            if int(opt) == 2:
+                response, command = send_verb(ss, 'from:' + atSign)
+                if 'data:_' in response:
+                    private_key = rsa.PrivateKey(privateKey[0], privateKey[1], privateKey[2], privateKey[3], privateKey[4])
+                    challenge = response.replace('@data:', '')
+                    signature = b42_urlsafe_encode(rsa.sign(challenge, private_key, 'SHA-256'))
+                    print(signature)
+                    response, command = send_verb(ss, 'pkam:' + signature)
+                    print(response)
+                else:
+                    ss.close()
+                    sys.exit(1)
+            
             while True:
                 verb = str(input(command))
                 response, command = send_verb(ss, verb)
@@ -45,7 +63,8 @@ def main():
                 if('error:AT' in response): 
                     ss.close()
                     sys.exit(1)
-        elif int(opt) == 2:
+            
+        elif int(opt) == 3:
             while True:
                 print("Temperature sensor menu\n\t1) See current temperature\n\t2) Record current temperature\n\t3) Exit")
                 tmp = input("> ")
@@ -74,10 +93,10 @@ def main():
                     break
                 else:
                     print('Invalid option. Please enter a number in the range [1-3]')
-        elif int(opt) == 3:
+        elif int(opt) == 4:
             sys.exit(1)
         else:
-            print('Invalid option. Please enter a number in the range [1-3]')
+            print('Invalid option. Please enter a number in the range [1-4]')
 
     
 def send_verb(skt, verb):
@@ -97,7 +116,7 @@ def measure_temp():
 def read_settings():
     with open('settings.json') as f:
         info = ujson.loads(f.read())
-        return info['ssid'], info['password'], info['atSign']
+        return info['ssid'], info['password'], info['atSign'], info['selfEncryptionKey'], info['privateKey']
 
 def connect_to_secondary(secondary):
     print('Connecting to secondary... ', end="")
@@ -149,6 +168,9 @@ def find_secondary(atSign):
     ss.close()
     print('Address found: %s' % secondary)
     return secondary
+
+def b42_urlsafe_encode(payload):
+    return string.translate(b2a_base64(payload)[:-1].decode('utf-8'),{ ord('+'):'-', ord('/'):'_' })
 
 if __name__ == '__main__':
     main()

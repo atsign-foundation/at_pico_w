@@ -1,5 +1,7 @@
 {
     "ssid": "",
     "password": "",
-    "atSign": ""
+    "atSign": "",
+    "selfEncryptionKey": "",
+    "privateKey": []
 }
