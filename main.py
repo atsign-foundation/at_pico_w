@@ -9,8 +9,10 @@ import ujson
 from third_party import rsa
 from ubinascii import b2a_base64
 from third_party import string
+from aes import aes_decrypt
 
-ssid = password = atSign = selfEncryptionKey = ''
+ssid = password = atSign = ''
+aesEncryptPrivateKey = aesEncryptPublicKey = aesPkamPrivateKey = aesPkamPublicKey = selfEncryptionKey = ''
 privateKey = []
 
 sensor_temp = machine.ADC(4)
@@ -18,7 +20,11 @@ conversion_factor = 3.3 / (65535)
 
 def main():
     
-    ssid, password, atSign, selfEncryptionKey, privateKey = read_settings()
+    global ssid, password, atSign, privateKey, aesEncryptPrivateKey, aesEncryptPublicKey, aesPkamPrivateKey, aesPkamPublicKey, selfEncryptionKey
+    ssid, password, atSign, privateKey = read_settings()
+    aesEncryptPrivateKey, aesEncryptPublicKey, aesPkamPrivateKey, aesPkamPublicKey, selfEncryptionKey = read_key(atSign)
+    pkamPrivateKey = aes_decrypt(aesPkamPrivateKey, selfEncryptionKey)
+    # print(pkamPrivateKey)
 
     wlan = network.WLAN(network.STA_IF)  # type: ignore
     wlan.active(True)
@@ -33,7 +39,7 @@ def main():
     sync_time()
     
     while True:
-        print("Welcome! What would you like to do?\n\t1) REPL\n\t2) REPL (from:atSign challenge is completed automatically)\n\t3) Temperature sensor menu\n\t4) Exit")
+        print("Welcome! What would you like to do?\n\t1) REPL\n\t2) REPL (from:atSign challenge is completed automatically)\n\t3) Get privateKey for @" + atSign + "\n\t4) Temperature sensor menu\n\t5) Exit")
         opt= input("> ")
         
         if int(opt) == 1 or int(opt) == 2:
@@ -46,6 +52,7 @@ def main():
             if int(opt) == 2:
                 response, command = send_verb(ss, 'from:' + atSign)
                 if 'data:_' in response:
+                    print("Signing challenge... (This process can take up to 1 minute)")
                     private_key = rsa.PrivateKey(privateKey[0], privateKey[1], privateKey[2], privateKey[3], privateKey[4])
                     challenge = response.replace('@data:', '')
                     signature = b42_urlsafe_encode(rsa.sign(challenge, private_key, 'SHA-256'))
@@ -63,8 +70,25 @@ def main():
                 if('error:AT' in response): 
                     ss.close()
                     sys.exit(1)
-            
+                    
         elif int(opt) == 3:
+            from pem_service import get_pem_parameters, get_pem_key
+            
+            pemKey = get_pem_key(pkamPrivateKey)
+            privateKey = get_pem_parameters(pemKey)
+            with open('settings.json', 'w') as w:
+                # ujson.dump({"ssid": ssid, "password" : password, "atSign" : atSign, "privateKey" : privateKey}, w)
+                # w.write("{\n\t\"ssid\": " + ssid + ",\n\t\"password\": " + password + ",\n\t\"atSign\": "+ atSign + ",\n\t\"privateKey\": [" + text[0] + ",\n\t" + text[1] + ",\n\t" + text[2] + ",\n\t" + text[3] + ",\n\t" + text[4] + "\n\t]\n}")
+
+                w.write("{\n\t\"ssid\": \"" + ssid + "\",\n\t\"password\": \"" + password + "\",\n\t\"atSign\": \"" + atSign +
+                        "\",\n\t\"privateKey\": [\n\t\t\t\t\t" + str(privateKey[0]) + ",\n\t\t\t\t\t" + str(privateKey[1]) + ",\n\t\t\t\t\t" + str(privateKey[2]) +
+                        ",\n\t\t\t\t\t" + str(privateKey[3]) + ",\n\t\t\t\t\t" + str(privateKey[4]) + "\n\t\t\t\t  ]\n}")
+                
+            print("Your privateKey has been generated. Re-launch REPL to continue")
+            sys.exit()
+            
+            
+        elif int(opt) == 4:
             while True:
                 print("Temperature sensor menu\n\t1) See current temperature\n\t2) Record current temperature\n\t3) Exit")
                 tmp = input("> ")
@@ -93,7 +117,7 @@ def main():
                     break
                 else:
                     print('Invalid option. Please enter a number in the range [1-3]')
-        elif int(opt) == 4:
+        elif int(opt) == 5:
             sys.exit(1)
         else:
             print('Invalid option. Please enter a number in the range [1-4]')
@@ -106,6 +130,11 @@ def send_verb(skt, verb):
     data = skt.read()
     response += data
     parts = response.decode().split('\n')
+    
+#     if 'llookup:' in verb:
+#         content = parts[0].replace('data:', '')
+#         parts[0] = aes_decrypt(content, selfEncryptionKey)
+        
     return parts[0], parts[1]
     
 def measure_temp():
@@ -116,7 +145,13 @@ def measure_temp():
 def read_settings():
     with open('settings.json') as f:
         info = ujson.loads(f.read())
-        return info['ssid'], info['password'], info['atSign'], info['selfEncryptionKey'], info['privateKey']
+        return info['ssid'], info['password'], info['atSign'].replace('@', ''), info['privateKey']
+    
+def read_key(atSign):
+    path = '/keys/@' + atSign + '_key.atKeys'
+    with open(path) as f:
+        info = ujson.loads(f.read())
+        return info['aesEncryptPrivateKey'], info['aesEncryptPublicKey'], info['aesPkamPrivateKey'], info['aesPkamPublicKey'], info['selfEncryptionKey']
 
 def connect_to_secondary(secondary):
     print('Connecting to secondary... ', end="")
