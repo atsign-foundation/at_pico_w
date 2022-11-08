@@ -14,4 +14,8 @@ Developed with [MicroPython](https://micropython.org/).
 - Now you can select option `2` in the REPL to automatically get authenticated in your DESS
 - Enjoy!  :)
 
-(You can uncomment the three commented lines in the `send_verb` method to see the llookup verb answer content decrypted. Warning: some stored keys are not encrypted, if you try to see the decrypted content of one of those stored keys, you will get an error. This exception will be handled in the future)
+(You can uncomment a few commented lines in the `send_verb` method to see the llookup verb answer content decrypted. Warning: some stored keys are not encrypted, if you try to see the decrypted content of one of those stored keys, you will get an error. This exception will be handled in the future)
+
+## Libraries
+- [iot-core-micropython](https://github.com/GoogleCloudPlatform/iot-core-micropython)
+- [uasn1](https://github.com/mkomon/uasn1)
