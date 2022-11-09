@@ -6,6 +6,7 @@ Communicate with the atPlatform using a Raspberry Pi Pico W.
 Developed with [MicroPython](https://micropython.org/).
 
 ## Usage
+- Install [this](https://github.com/atsign-foundation/at_pico_w/blob/feature/aes-pem-rsa/custom_firmware.uf2) custom firmware in your Pico W.
 - Fill all the fields of the `settings.json` file (ssid/passw of your Wi-Fi network and atSign). 
 - Download [Thonny IDE](https://thonny.org/) and place all the files of this repository in the Pico W file system.
 - Place your `.atKeys` file in the `~/keys/` directory (if the folder doesn't exist, create it manually)
