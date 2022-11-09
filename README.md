@@ -15,6 +15,8 @@ Developed with [MicroPython](https://micropython.org/).
 - Now you can select option `2` in the REPL to automatically get authenticated in your DESS
 - Enjoy!  :)
 
+(If you get an error when attempting to find the secondary or when trying to connect to it, run again the REPL)
+
 (You can uncomment a few commented lines in the `send_verb` method to see the llookup verb answer content decrypted. Warning: some stored keys are not encrypted, if you try to see the decrypted content of one of those stored keys, you will get an error. This exception will be handled in the future)
 
 ## Libraries
