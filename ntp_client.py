@@ -4,8 +4,8 @@ import usocket as socket # type: ignore
 import struct
 import machine
 
-# Substract 2 hours, so we get + 2 hours
-TIMESTAMP_DELTA = 2208988800 - 3600*2 # epoch time - 2 hours
+# Substract 1 hour, so we get + 1 hour
+TIMESTAMP_DELTA = 2208988800 - 3600*1 # epoch time - 1 hour
 NTP_QUERY = b'\x1b' + 47 * b'\0'
 
 def sync_time():
@@ -40,22 +40,8 @@ def format_time_id():
     return time.time()
 
 def get_week_day(day):
-    d = ''
-    if(day == 0):
-        d = 'Monday'
-    elif(day == 1):
-        d = 'Tuesday'
-    elif(day == 2):
-        d = 'Wednesday'
-    elif(day == 3):
-        d = 'Thursday'
-    elif(day == 4):
-        d = 'Friday'
-    elif(day == 5):
-        d = 'Saturday'
-    elif(day == 6):
-        d = 'Sunday'
-    return d
+    d = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    return d[day]
 
     
     
