@@ -34,6 +34,8 @@ First, let's create a fork of this repository branch on your own GitHub account.
 - `mkdir at_pico_w` (make an at_pico_w folder) 
 - `cd at_pico_w` (change directories) 
 - `git clone <https://github.com/<YOUR_GITHUB_NAME>/at_pico_w.git> .` (clone your fork into the folder you've created)
+- `git checkout -b umass2022` (create a new branch called umass2022 and go into it)
+- `git reset --hard origin/umass2022` (reset the branch to the origin)
 
 Now you should have all of the code in your folder. Your folder should look something like this:
 
