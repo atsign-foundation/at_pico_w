@@ -1,5 +1,4 @@
 import io
-import sys
 import ubinascii
 import uasn1
 
@@ -8,7 +7,6 @@ def read_pem(input_data):
     data = []
     state = 0
     for line in input_data:
-        # print(line)
         if state == 0:
             if line.startswith('-----BEGIN'):
                 state = 1
@@ -57,7 +55,7 @@ def strclass(id):
         s = 'APPLICATION'
     elif id == uasn1.ClassContext:
         s = 'CONTEXT'
-    elif id == san1.ClassPrivate:
+    elif id == uasn1.ClassPrivate:
         s = 'PRIVATE'
     else:
         raise ValueError('Illegal class: %#02x' % id)
@@ -84,8 +82,8 @@ def prettyprint(input_data, output, indent=0):
             prettyprint(input_data, output, indent+2)
             input_data.leave()
             
-def get_pem_parameters(pem):
-    formatted_pem = format_pem(pem)
+def get_pem_parameters(pem, type: str):
+    formatted_pem = format_pem(pem, type)
     input_data = read_pem(formatted_pem)
     data = []
     for line in input_data:
@@ -115,8 +113,8 @@ def get_pem_parameters(pem):
         # text.append(str(i))
     return result #, text
 
-def get_pem_key(pkcs8):
-    formatted_pkcs8 = format_pem(pkcs8)
+def get_pem_key(pkcs8, type: str):
+    formatted_pkcs8 = format_pem(pkcs8, type)
     input_data = read_pem(formatted_pkcs8)
     data = []
     for line in input_data:
@@ -140,11 +138,12 @@ def get_pem_key(pkcs8):
     # print(value)
     return value
 
-def format_pem(pem):
+# type == "public" or "private"
+def format_pem(pem, type: str):
     pem_list = []
     for i in range(0, len(pem), 64):
         pem_list.append(pem[i:i+64])
-    pem_list.insert(0, "-----BEGIN RSA PRIVATE KEY-----")
-    pem_list.append("-----END RSA PRIVATE KEY-----")
+    pem_list.insert(0, "-----BEGIN RSA %s KEY-----" %type.upper())
+    pem_list.append("-----END RSA %s KEY-----" %type.upper())
     
     return pem_list
