@@ -1,7 +1,6 @@
 
 
 def main():
-
     shouldRun = str(input('Run? (y/n): '))
     if shouldRun == 'n':
         import sys
@@ -45,7 +44,9 @@ def main():
         del time
 
         # Now we're logged in! 
-        # Consider @smoothalligator as the app atSign and @fascinatingsnow as the IoT Pico W atSign
+        # Consider 
+        # - @smoothalligator as the app atSign
+        # - @fascinatingsnow as the IoT Pico W atSign
 
         # A) Receive data from another atSign
         theirAtSign = '@smoothalligator'
