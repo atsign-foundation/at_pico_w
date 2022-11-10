@@ -43,7 +43,7 @@ Now you should have all of the code in your folder. Your folder should look some
 
 ## Setting up Micropython on your Pico W
 
-1. In the folder, you will get a copy of the `rp2-pico-w-20221108-aes-ctr-enabled.uf2`. This .uf2 file is specially built firmware to allow special encryption that Atsign uses (AES CTR and RSA-2048) to work on the Pico W. Big shoutout to @realvarx for developing all the Atsign encryption for the Pico W. 
+1. Go to [atsign-foundation/micropython/releases](https://github.com/atsign-foundation/micropython/releases) and download the `.uf2` file. This `.uf2` file is specially built firmware to allow special encryption that Atsign uses (AES CTR and RSA-2048) to work on the Pico W. Big shoutout to @realvarx for developing all the Atsign encryption for the Pico W. 
 
 2. Unplug your Pico W from your computer. Hold down the BOOTSEL button on the Pico W and then plug back the Pico W into your computer (all while holding down the BOOTSEL button). Once the Pico W is plugged in, you can let go of the BOOTSEL button. Your Pico W should now be in bootloader mode. 
 
@@ -51,7 +51,7 @@ You should see the Pico on your computer as a USB drive (see image below).
 
 <img src="https://i.imgur.com/msoBukM.png" />
 
-3. Drag and drop the `rp2-pico-w-20221108-aes-ctr-enabled.uf2` file into the Pico W. This will flash the Pico W with the new firmware. Now the Pico W should automatically restart so no need to unplug/replug it.
+3. Drag and drop the `firmware.uf2` file into the Pico W. This will flash the Pico W with the new firmware. Now the Pico W should automatically restart so no need to unplug/replug it.
 
 ## Getting Started - Blinking the LED
 
