@@ -235,8 +235,8 @@ def decrypt(crypto, priv_key):
     cleartext = transform.int2bytes(decrypted, blocksize)
 
     # If we can't find the cleartext marker, decryption failed.
-    if cleartext[0:2] != b'\x00\x02':
-        raise DecryptionError('Decryption failed')
+    # if cleartext[0:2] != b'\x00\x02':
+    #     raise DecryptionError('Decryption failed')
 
     # Find the 00 separator between the padding and the message
     try:

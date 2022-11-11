@@ -30,14 +30,14 @@ def main():
         challenge = response.replace('@data:', '')
         print('Challenge: %s' % challenge)
         print('Digesting...')
-        privateKey = keys_util.get_pkam_private_key(atSign)
-        private_key = rsa.PrivateKey(privateKey[0], privateKey[1], privateKey[2], privateKey[3], privateKey[4])
-        signature = b42_urlsafe_encode(rsa.sign(challenge, private_key, 'SHA-256'))
+        pemPkamPrivateKey = keys_util.get_pem_pkam_private_key_from_file(atSign) # parameters
+        rsaPkamPrivateKey = rsa.PrivateKey(pemPkamPrivateKey[0], pemPkamPrivateKey[1], pemPkamPrivateKey[2], pemPkamPrivateKey[3], pemPkamPrivateKey[4])
+        signature = b42_urlsafe_encode(rsa.sign(challenge, rsaPkamPrivateKey, 'SHA-256'))
         print('Signature: %s' % str(signature))
         response, command = remote_secondary.send_verb('pkam:' + signature)
         print(response) # data:success
 
-        del signature, challenge, private_key, privateKey, ssid, password
+        del signature, challenge, rsaPkamPrivateKey, pemPkamPrivateKey, ssid, password
 
         import time
         time.sleep(1)

@@ -1,5 +1,5 @@
 from lib.at_client.io_util import read_key
-from lib.at_client.aes import aes_decrypt
+from lib.aes import aes_decrypt
 from lib.at_client.at_utils import without_prefix
 from lib.pem_service import get_pem_parameters, get_pem_key
 import os
@@ -36,7 +36,7 @@ def initialize_keys(atSign: str) -> None:
 
     del selfEncryptionKey
 
-def get_pkam_private_key(atSign: str):
+def get_pem_pkam_private_key_from_file(atSign: str):
     import ujson
     with open('/keys/@%s/aesPkamPrivateKey_pem.json' %without_prefix(atSign), 'r') as f:
         info = ujson.loads(f.read())
