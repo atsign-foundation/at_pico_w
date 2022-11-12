@@ -166,6 +166,18 @@ def format_pem(pem, type: str):
 def get_public_n_e(publicRsaKeyDecrypted: str):
     """
     get the n and e value of a public rsa key (decrypted, base 64, pkcs1 e.g.: 'MIIBIjANBgkqhkiG9w0BAQE...')
+
+    Example:
+
+    sk = '***' # selfEncryptionKey
+    encryptedEncryptPublicKey = '***' # aesEncryptPublicKey
+
+    from lib import aes
+    from lib.pem_service import get_public_n_e
+
+    n, e = get_public_n_e(aes.aes_decrypt(encryptedEncryptPublicKey, sk))
+    print(n, e) # e.g. : '17722134712468768015452030444478829164426015687915321737937997713634046043898347302696251047824063488994... 65537'
+
     """
     formatted_pem = format_pem(publicRsaKeyDecrypted, "public")
     input_data = read_pem(formatted_pem)
