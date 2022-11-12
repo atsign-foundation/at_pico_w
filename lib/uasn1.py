@@ -8,6 +8,7 @@
 
 Boolean = 0x01
 Integer = 0x02
+BitString = 0x03
 OctetString = 0x04
 Null = 0x05
 ObjectIdentifier = 0x06
@@ -333,6 +334,9 @@ class Decoder(object):
         bytes_data = self._read_bytes(length)
         if nr == Boolean:
             value = self._decode_boolean(bytes_data)
+        elif nr == BitString:
+            value = binascii.b2a_base64(bytes_data).decode().rstrip('\n')
+            value = self._decode_bit_string(bytes_data)
         elif nr in (Integer, Enumerated):
             value = self._decode_integer(bytes_data)
         elif nr == OctetString:
@@ -405,6 +409,11 @@ class Decoder(object):
         """Decode an octet string."""
         a = binascii.b2a_base64(bytes_data)
         return a.decode().rstrip('\n')
+    
+    def _decode_bit_string(self, bytes_data):
+        """Decode a bit string"""
+        a = binascii.b2a_base64(bytes_data).decode().rstrip('\n')
+        return a
 
     def _decode_null(self, bytes_data):
         """Decode a Null value."""
