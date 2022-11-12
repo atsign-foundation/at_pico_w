@@ -45,7 +45,7 @@ class RemoteSecondary:
             rootHost = self.rootUrl.split(':')[0]
             # rootPort = int(self.rootUrl.split(':')[1])
             rootPort = 64
-            print('Finding secondary...')
+            # print('Finding secondary...')
             self.secondary_address = self.find_secondary(self.atSign, rootHost, rootPort)
             time.sleep(2)
         else:

@@ -1,9 +1,9 @@
 
 
 def main():
+    import sys
     shouldRun = str(input('Run? (y/n): '))
     if shouldRun == 'n':
-        import sys
         sys.exit(1)
 
     from lib.at_client import keys_util
@@ -16,11 +16,12 @@ def main():
     keys_util.initialize_keys(atSign) # initialize /keys/@{your_atSign}/ containing _pem.json keys extracted from /keys/@fascinatingsnow_key.atKeys, you really only need to run this once per atSign
 
     atSignWithoutPrefix = without_prefix(atSign)
+    rootUrl = 'root.atsign.org:64'
 
     print('Connecting to WiFi %s...' % ssid)
     wlan = wifi.init_wlan(ssid, password)
 
-    remote_secondary = remote_secondary.RemoteSecondary('root.atsign.org:64', atSign, wlan)
+    remote_secondary = remote_secondary.RemoteSecondary(rootUrl, atSign, wlan)
     print('Connecting to remote secondary of atSign @%s...' % atSignWithoutPrefix)
     remote_secondary.connect_to_secondary()
     print('Connected to secondary of atSign @%s with address %s' %(atSignWithoutPrefix, str(remote_secondary.get_secondary_address())))
@@ -38,35 +39,8 @@ def main():
         print(response) # data:success
 
         del signature, challenge, rsaPkamPrivateKey, pemPkamPrivateKey, ssid, password
-
-        import time
-        time.sleep(1)
-        del time
-
-        # Now we're logged in! 
-        # Consider 
-        # - @smoothalligator as the app atSign
-        # - @fascinatingsnow as the IoT Pico W atSign
-
-        # A) Receive data from another atSign
-        theirAtSign = '@smoothalligator'
-        keyName = 'led'
-        for i in range(50):
-            response, command = remote_secondary.send_verb('lookup:%s%s' % (keyName, theirAtSign))
-            if response != None:
-                response = response.replace('@data:', '')
-                print(response) # 0, 1
-
-
-        # B) Send a message to another atSign
-        # theirAtSign = '@smoothalligator'
-        # keyName = 'message'
-        # value = 'some message'
-        # updateCommand = ('update:%s%s %s' %(keyName, theirAtSign, value))
-        # print('ran command: %s' %updateCommand)
-        # response, command = remote_secondary.send_verb(updateCommand)
-        # print(response)
-
+        sys.exit(1)
+        
 def b42_urlsafe_encode(payload):
     from lib.third_party import string
     from ubinascii import b2a_base64
