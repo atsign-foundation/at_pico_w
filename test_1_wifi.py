@@ -1,6 +1,12 @@
 
 
 def main():
+    """
+    Sample output
+
+    >>> Connecting to Soup (Ctrl+C to stop)...
+    >>> Connected to WiFi Soup: True
+    """
     from lib.at_client import io_util
     from lib import wifi
 
