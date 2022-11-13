@@ -1,4 +1,5 @@
-import network # type: ignore
+# ntp, network time protocol client
+
 import time
 import usocket as socket # type: ignore
 import struct
