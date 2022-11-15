@@ -223,3 +223,8 @@ def get_public_n_e(publicRsaKeyDecrypted: str):
     # print('n: %s' %numbers[0])
     # print('e: %s' %numbers[1])
     return numbers[0], numbers[1]
+
+def b42_urlsafe_encode(payload):
+    from lib.third_party import string
+    from ubinascii import b2a_base64
+    return string.translate(b2a_base64(payload)[:-1].decode('utf-8'),{ ord('+'):'-', ord('/'):'_' })
