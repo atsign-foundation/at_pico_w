@@ -19,7 +19,7 @@ For UMass 2022 IoT Projects.
 
 - [VSCode](https://code.visualstudio.com/Download) with the [Pico-W-Go extension](https://marketplace.visualstudio.com/items?itemName=paulober.pico-w-go)
 - [Git](https://git-scm.com/) and your own [GitHub](https://github.com) account
-- A [Raspberry Pi Pico W](https://www.canakit.com/raspberry-pi-pico-w.html) and [a micro-USB to USB-A cable](https://m.media-amazon.com/images/I/61kT7kpt2hL._AC_SY450_.jpg) (to connect your Pico to your Computer)
+- A [Raspberry Pi Pico W](https://www.canakit.com/raspberry-pi-pico-w.html) and [a data micro-USB to USB-A cable](https://m.media-amazon.com/images/I/61kT7kpt2hL._AC_SY450_.jpg) (to connect your Pico to your Computer)
 - [FileZilla](https://filezilla-project.org/) or any other FTP software.
 - Two [atSigns](https://my.atsign.com/go) and their [.atKeys files](https://www.youtube.com/watch?v=2Uy-sLQdQcA&ab_channel=Atsign)
 
@@ -90,14 +90,13 @@ Now we know your Pico W is working swell, let's get into some atPlatform.
 First, let's create a fork of this repository branch on your own GitHub account. This gives you a copy of the code that you can edit on your own system.
 
 1. Fork this repository by clicking "Fork" on our [at_pico_w](https://github.com/atsign-foundation/at_pico_w/tree/umass2022) repository.
-2. Create the fork by pressing "Create fork"
-3. Go into your terminal and `cd` where you like to keep your code projects. (For example, I like to keep all of my projects in a `GitHub/` folder on my desktop so I would do something like `cd Desktop` then `cd GitHub`).
-4. Fork the repository by doing the following:
-- `mkdir at_pico_w` (make an at_pico_w folder) 
-- `cd at_pico_w` (change directories) 
-- `git clone <https://github.com/<YOUR_GITHUB_NAME>/at_pico_w.git> .` (clone your fork into the folder you've created)
-- `git checkout -b umass2022` (create a new branch called umass2022 and go into it)
-- `git reset --hard origin/umass2022` (reset the branch to the origin)
+2. Create the fork by pressing "Create fork" and untick the box that says "Include all branches". This will fork all the branches, specifically the `umass2022` branch.
+3. Open VSCode and open an empty folder where you will be creating a new project.
+4. Git clone your fork via `git clone <https://github.com/<YOUR_GITHUB_NAME>/at_pico_w.git> .` (clone your fork into the folder you've created)
+5. `git checkout -b umass2022` (create a new branch called umass2022 and go into it)
+6. `git remote add upstream https://github.com/atsign-foundation/at_pico_w.git` (add the original repository as a remote called upstream)
+7. `git fetch upstream` (update with latest upstream)
+8. `git reset --hard upstream/umass2022` (reset the branch to the origin)
 
 Now you should have all of the code in your folder. This is the fork you created on your GitHub account. Your folder should look something like this:
 
@@ -190,7 +189,9 @@ Yay our FTP server is closed:
 
 <image src="https://i.imgur.com/3FJg4Lc.png" />
 
-8. Now we have to put our keys in the Pico W, it's time to run `test_3_pkam_authenticate.py`. 
+7. Now let's initialize our keys in the Pico W by running `test_3_initializing_keys.py`. This decrypts the encryption keys and converts them to their n, e, p, d, q parameters which can be understood by the RSA library.
+
+8. Now we can test PKAM authenticating by running `test_4_pkam_authenticate.py`.  PKAM authenticating is essentially authenticating ourselves to the server so we can run commands like updating, deleting, and seeing values.
 
 Output should be similar to:
 
