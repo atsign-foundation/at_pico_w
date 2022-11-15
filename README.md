@@ -31,7 +31,7 @@ Hi UMass students! I've wrote some code for you to get your Pico Ws setup with t
 
 Let me know if you have any questions on Discord (Jeremy#7970) or by email (jeremy.tubongbanua@atsign.com) or just on our [discord](https://discord.atsign.com).
 
-Be sure to get the first 4 prerequisites under [Prerequisites](#prerequisites) before you start. The last 2 prerequisites (FTP software and 2 atSigns) can be done later.
+Be sure to get the first 3 prerequisites under [Prerequisites](#prerequisites) before you start. The last 2 prerequisites (FTP software and 2 atSigns) can be done later.
 
 ## 1. Getting the right Micropython Firmware for your Pico W
 
@@ -49,7 +49,7 @@ You should see the Pico on your computer as a USB drive (see image below).
 
 Now let's create our first project.
 
-1. Open VSCode and open an empty folder somewhere on your computer. This is where your project will be.
+1. Open VSCode and create and open an empty folder where your project will be.
 
 2. Get the [Pico-W-Go extension](https://marketplace.visualstudio.com/items?itemName=paulober.pico-w-go)
 
@@ -70,7 +70,7 @@ for i in range(10):
     time.sleep(0.5)
 ```
 
-Note: You could also name it `main.py`. However, `main.py` is the default file that the Pico W will run when it starts up. But with the [Pico-W-Go extension](https://marketplace.visualstudio.com/items?itemName=paulober.pico-w-go), you can choose *when* to run a file (regardless of name) which is how we will be running our files from here on out. I recommend not having a main.py at all since it tends to bug out the Pico W trying to run your experimental code as soon as it boots which can get annoying.
+Note: You could also name this file- `main.py`. However, `main.py` is the default file that the Pico W will run when it starts up. But with the [Pico-W-Go extension](https://marketplace.visualstudio.com/items?itemName=paulober.pico-w-go), you can choose *when* to run a file (regardless of name) which is how we will be running our files from here on out. I recommend not having a `main.py` at all since it tends to bug out the Pico W trying to run your experimental code as soon as it boots which can get annoying.
 
 
 4. Open the command pallette via `Ctrl + Shift + P` (or `Cmd + Shift + P` if you are on a Mac) and type `Configure Project` and press Enter. The extension should setup your current folder as a Pico W project by initializing a `.vscode/` hidden folder and a `.picowgo` hidden file. Now, any Pico-W-Go commands should work. You can also access Pico-W-Go commands by clicking on "All Commands" at the bottom of VSCode.
@@ -89,15 +89,17 @@ Now we know your Pico W is working swell, let's get into some atPlatform.
 
 First, let's create a fork of this repository branch on your own GitHub account. This gives you a copy of the code that you can edit on your own system.
 
-1. Fork this repository by clicking "Fork"
-2. Go into your terminal where you like to keep your code projects and do the following:
+1. Fork this repository by clicking "Fork" on our [at_pico_w](https://github.com/atsign-foundation/at_pico_w/tree/umass2022) repository.
+2. Create the fork by pressing "Create fork"
+3. Go into your terminal and `cd` where you like to keep your code projects. (For example, I like to keep all of my projects in a `GitHub/` folder on my desktop so I would do something like `cd Desktop` then `cd GitHub`).
+4. Fork the repository by doing the following:
 - `mkdir at_pico_w` (make an at_pico_w folder) 
 - `cd at_pico_w` (change directories) 
 - `git clone <https://github.com/<YOUR_GITHUB_NAME>/at_pico_w.git> .` (clone your fork into the folder you've created)
 - `git checkout -b umass2022` (create a new branch called umass2022 and go into it)
 - `git reset --hard origin/umass2022` (reset the branch to the origin)
 
-Now you should have all of the code in your folder. Your folder should look something like this:
+Now you should have all of the code in your folder. This is the fork you created on your GitHub account. Your folder should look something like this:
 
 <img width=250px src="https://i.imgur.com/CC7bEFI.png">
 
