@@ -189,9 +189,11 @@ Yay our FTP server is closed:
 
 7. Now let's initialize our keys in the Pico W by running `test_3_initializing_keys.py`. This decrypts the encryption keys and converts them to their n, e, p, d, q parameters which can be understood by the RSA library.
 
-8. Re-open your FTP server, You should see a new folder in your `/keys/` directory on your Pico. This is the decrypted keys in their n, e, p, d, q parameters. This is what the Pico W will use to authenticate into the atSign's server.
+8. Re-open your FTP server, You should see a new folder in your `/keys/` directory on your Pico. This new folder should be named as your atSign (example `/keys/@alice/`). This is the decrypted keys in their n, e, p, d, q parameters. This is what the Pico W will use to authenticate into the atSign's server.
 
-9. Now we can test PKAM authenticating by running `test_4_pkam_authenticate.py`.  PKAM authenticating is essentially authenticating ourselves to the server so we can run commands like updating, deleting, and seeing values.
+9. Close the FTP server.
+
+10. Now we can test PKAM authenticating by running `test_4_pkam_authenticate.py`.  PKAM authenticating is essentially authenticating ourselves to the server so we can run commands like updating, deleting, and seeing values.
 
 Output should be similar to:
 
