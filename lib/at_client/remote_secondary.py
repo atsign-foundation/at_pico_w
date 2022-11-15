@@ -7,12 +7,10 @@ class RemoteSecondary:
 
     # rootUrl e.g. root.atsign.org:64
     # atSign e.g. "alice" or "@alice"
-    def __init__(self, rootUrl: str, atSign: str, wlan=None):
+    def __init__(self, atSign: str, rootUrl='root.atsign.org:64', wlan=None):
         self.rootUrl = rootUrl 
         self.atSign = at_utils.format_atSign(atSign)
         self.wlan = wlan
-
-
 
     def is_connected(self) -> bool:
         return self.ss is not None
@@ -72,7 +70,7 @@ class RemoteSecondary:
         self.ss = ss
         
     # returns the secondary address (as a string) of a given atSign, rootHost, and rootPort
-    def find_secondary(self, atSign: str, rootHost: str, rootPort: int) -> str:
+    def find_secondary(self, atSign: str, rootHost: str = 'root.atsign.org', rootPort: int = 64) -> str:
         atSign = at_utils.without_prefix(atSign)
         # print('Finding secondary for @' + atSign + '...')
         a = usocket.getaddrinfo(rootHost, rootPort)[0][-1]
