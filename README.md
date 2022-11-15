@@ -7,13 +7,15 @@ For UMass 2022 IoT Projects.
 
 # Table of Contents
 
+- [Table of Contents](#table-of-contents)
 - [Prerequisites](#prerequisites)
 - [Instructions](#instructions)
-  * [Forking the Project](#forking-the-project)
-  * [Setting up Micropython on your Pico W](#setting-up-micropython-on-your-pico-w)
-  * [Getting Started - Blinking the LED](#getting-started---blinking-the-led)
-  * [Connecting to the atPlatform](#connecting-to-the-atplatform)
-  * [Libraries](#libraries)
+  * [0. Introduction](#0-introduction)
+  * [1. Getting the right Micropython Firmware for your Pico W](#1-getting-the-right-micropython-firmware-for-your-pico-w)
+  * [2. Getting Started - Blinking the LED](#2-getting-started---blinking-the-led)
+  * [3. Git Cloning](#3-git-cloning)
+  * [4. Connecting to WiFi](#4-connecting-to-wifi)
+  * [5. Authenticating into your atSign's server](#5-authenticating-into-your-atsign-s-server)
 
 # Prerequisites
 
@@ -21,7 +23,7 @@ For UMass 2022 IoT Projects.
 - [Git](https://git-scm.com/) and your own [GitHub](https://github.com) account
 - A [Raspberry Pi Pico W](https://www.canakit.com/raspberry-pi-pico-w.html) and [a data micro-USB to USB-A cable](https://m.media-amazon.com/images/I/61kT7kpt2hL._AC_SY450_.jpg) (to connect your Pico to your Computer)
 - [FileZilla](https://filezilla-project.org/) or any other FTP software.
-- Two [atSigns](https://my.atsign.com/go) and their [.atKeys files](https://www.youtube.com/watch?v=2Uy-sLQdQcA&ab_channel=Atsign)
+- One [atSign](https://my.atsign.com/go) and its [.atKeys file](https://www.youtube.com/watch?v=2Uy-sLQdQcA&ab_channel=Atsign)
 
 # Instructions
 
@@ -144,9 +146,9 @@ Connecting to Soup (Ctrl+C to stop)...
 Connected to WiFi Soup: True
 ```
 
-## 5. Connecting to your device atSign's atServer.
+## 5. Authenticating into your atSign's server
 
-1. If you do not have all of the prerequisites, it is time to get them, especially: [FileZilla](https://filezilla-project.org/) or any other FTP software and two [atSigns](https://my.atsign.com/go) and their [.atKeys files](https://www.youtube.com/watch?v=2Uy-sLQdQcA&ab_channel=Atsign). Continue reading to find out how to get your .atKeys files.
+1. If you do not have all of the prerequisites, it is time to get them, especially: [FileZilla](https://filezilla-project.org/) or any other FTP software and one [atSign](https://my.atsign.com/go) and its [.atKeys file](https://www.youtube.com/watch?v=2Uy-sLQdQcA&ab_channel=Atsign). Continue reading to find out how to get your .atKeys files.
 
 2. Add the atSign you wish your device's atSign to be in the `settings.json`. This is an atSign you own and got from [my.atsign.com/go](https://my.atsign.com/go).
 
@@ -187,7 +189,9 @@ Yay our FTP server is closed:
 
 7. Now let's initialize our keys in the Pico W by running `test_3_initializing_keys.py`. This decrypts the encryption keys and converts them to their n, e, p, d, q parameters which can be understood by the RSA library.
 
-8. Now we can test PKAM authenticating by running `test_4_pkam_authenticate.py`.  PKAM authenticating is essentially authenticating ourselves to the server so we can run commands like updating, deleting, and seeing values.
+8. Re-open your FTP server, You should see a new folder in your `/keys/` directory on your Pico. This is the decrypted keys in their n, e, p, d, q parameters. This is what the Pico W will use to authenticate into the atSign's server.
+
+9. Now we can test PKAM authenticating by running `test_4_pkam_authenticate.py`.  PKAM authenticating is essentially authenticating ourselves to the server so we can run commands like updating, deleting, and seeing values.
 
 Output should be similar to:
 
