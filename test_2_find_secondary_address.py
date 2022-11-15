@@ -17,21 +17,18 @@ def main():
 
     # get values
     ssid, password, atSign = io_util.read_settings()
-    rootUrl = 'root.atsign.org:64'
-    rootHost = rootUrl.split(':')[0]
-    rootPort = int(rootUrl.split(':')[1])
 
     # connect to internet
     print('\nConnecting to %s (Ctrl+C to stop)...' % ssid)
     wlan = wifi.init_wlan(ssid, password)
-    print('Connected: ' %str(not wlan == None))
+    print('Connected: %s' %str(not wlan == None))
 
     # initialize RemtoeSecondary object
-    rs = RemoteSecondary(rootUrl, atSign, wlan)
+    rs = RemoteSecondary(atSign,  wlan=wlan)
 
     # find secondary address
     print('Connecting to remote secondary of atSign @%s...' % atSign)
-    ss_address = rs.find_secondary(atSign, rootHost, rootPort)
+    ss_address = rs.find_secondary(atSign)
     print('Connected to secondary of atSign @%s with address %s' %(atSign, ss_address))
 
 if __name__ == '__main__':
