@@ -83,20 +83,16 @@ VSCode bottom toolbar with Pico-W-Go commands:
 
 7. Make sure you have your `blink.py` python file open in the editor and Run the "Run current file" command. You should see the onboard LED blink 10 times.
 
-## 3. Forking the Project
+## 3. Git Cloning
 
 Now we know your Pico W is working swell, let's get into some atPlatform.
 
-First, let's create a fork of this repository branch on your own GitHub account. This gives you a copy of the code that you can edit on your own system.
+First, make sure you have [Git](https://git-scm.com/) installed.
 
-1. Fork this repository by clicking "Fork" on our [at_pico_w](https://github.com/atsign-foundation/at_pico_w/tree/umass2022) repository.
-2. Create the fork by pressing "Create fork" and untick the box that says "Include all branches". This will fork all the branches, specifically the `umass2022` branch.
-3. Open VSCode and open an empty folder where you will be creating a new project.
-4. Git clone your fork via `git clone <https://github.com/<YOUR_GITHUB_NAME>/at_pico_w.git> .` (clone your fork into the folder you've created)
-5. `git checkout -b umass2022` (create a new branch called umass2022 and go into it)
-6. `git remote add upstream https://github.com/atsign-foundation/at_pico_w.git` (add the original repository as a remote called upstream)
-7. `git fetch upstream` (update with latest upstream)
-8. `git reset --hard upstream/umass2022` (reset the branch to the origin)
+1. Open VSCode and open an empty folder where you will be creating a new project.
+2. Open the terminal (Ctrl + Shift + `)
+3. Type `git clone https://github.com/atsign-foundation/at_pico_w.git .` to clone this repository into your current folder.
+4. Go to the `umass2022` branch via `git checkout umass2022`
 
 Now you should have all of the code in your folder. This is the fork you created on your GitHub account. Your folder should look something like this:
 
