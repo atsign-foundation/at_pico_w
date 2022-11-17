@@ -228,15 +228,46 @@ def decrypt(crypto, priv_key):
     rsa.pkcs1.DecryptionError: Decryption failed
 
     """
+    # blocksize = common.byte_size(priv_key.n)
+    # encrypted = transform.bytes2int(crypto)
+    # decrypted = priv_key.blinded_decrypt(encrypted)
+    # cleartext = transform.int2bytes(decrypted, blocksize)
+
+    # # Detect leading zeroes in the crypto. These are not reflected in the
+    # # encrypted value (as leading zeroes do not influence the value of an
+    # # integer). This fixes CVE-2020-13757.
+    # crypto_len_bad = len(crypto) > blocksize
+
+    # # If we can't find the cleartext marker, decryption failed.
+    # from hmac import compare_digest
+    # cleartext_marker_bad = not compare_digest(cleartext[:2], b'\x00\x02')
+
+    # # Find the 00 separator between the padding and the message
+    # try:
+    #     sep_idx = cleartext.index(b'\x00', 2)
+    # except ValueError:
+    #     sep_idx = -1
+    # sep_idx_bad = sep_idx < 0
+
+    # anything_bad = crypto_len_bad | cleartext_marker_bad | sep_idx_bad
+    # if anything_bad:
+    #     # raise DecryptionError('Decryption failed')
+    #     return cleartext[sep_idx + 1:]
+
+    # return cleartext[sep_idx + 1:]
 
     blocksize = common.byte_size(priv_key.n)
     encrypted = transform.bytes2int(crypto)
     decrypted = priv_key.blinded_decrypt(encrypted)
     cleartext = transform.int2bytes(decrypted, blocksize)
+    # print('clear text: %s' %cleartext)
+    # import ubinascii
+    # print('clear text: %s' %(ubinascii.b2a_base64(cleartext)))
+    # print('clear text: %s' %(ubinascii.b2a_base64(cleartext).decode()))
 
     # If we can't find the cleartext marker, decryption failed.
-    # if cleartext[0:2] != b'\x00\x02':
-    #     raise DecryptionError('Decryption failed')
+    if cleartext[0:2] != b'\x00\x02': # maybe try commenting out
+        raise DecryptionError('Decryption failed') # maybe try commenting out
 
     # Find the 00 separator between the padding and the message
     try:
@@ -275,7 +306,7 @@ def sign_hash(hash_value, priv_key, hash_method):
     padded = _pad_for_signing(cleartext, keylength)
 
     payload = transform.bytes2int(padded)
-    encrypted = priv_key.blinded_encrypt(payload)
+    encrypted = priv_key.blinded_decrypt(payload)
     block = transform.int2bytes(encrypted, keylength)
 
     return block
@@ -320,7 +351,7 @@ def verify(message, signature, pub_key):
 
     keylength = common.byte_size(pub_key.n)
     encrypted = transform.bytes2int(signature)
-    decrypted = core.decrypt_int(encrypted, pub_key.e, pub_key.n)
+    decrypted = core.encrypt_int(encrypted, pub_key.e, pub_key.n)
     clearsig = transform.int2bytes(decrypted, keylength)
 
     # Get the hash method
