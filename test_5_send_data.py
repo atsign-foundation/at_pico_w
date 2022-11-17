@@ -6,18 +6,20 @@ def main():
         sys.exit(1)
     del sys # make space in memory
 
+    # read settings.json
     from lib.at_client import io_util
     ssid, password, atSign = io_util.read_settings()
     del io_util # make space in memory
 
+    # connect to wifi
     from lib import wifi
     print('Connecting to WiFi %s...' % ssid)
     wifi.init_wlan(ssid, password)
     del ssid, password, wifi # make space in memory
 
+    # connect and pkam authenticate into secondary
     from lib.at_client import at_client
-    ss_address = '8f300ccb-9e68-524d-b069-b711173084fc.swarm0002.atsign.zone:5067'
-    atClient = at_client.AtClient(atSign, writeKeys=True, secondary_address=ss_address)
+    atClient = at_client.AtClient(atSign, writeKeys=True)
     atClient.pkam_authenticate(verbose=True)
     del at_client
 
