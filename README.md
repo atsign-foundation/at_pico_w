@@ -213,4 +213,41 @@ and that you have the .atKeys file in the `/keys/` directory.
 
 <image src="https://i.imgur.com/wl2rIk8.png" />
 
-## 6. Sending end-to-end encrypted data
+## 6. Sending data
+
+1. Before moving on, make sure you've:
+
+- Uploaded your .atKeys to the Pico W (via the FTP server)
+- Have passed tests 1, 2, 3, and 4 (wifi, find secondary address, initializing keys, and pkam authenticating).
+- Your other atSign is onboarded (a.k.a. their .atKeys file has been generated). This is to ensure that the server of the other atSign exists.
+
+2. Copy the following code to 1. read the settings.json, 2. connect to the WiFi, and 3. authneticate into your atSign's server.
+
+```py
+
+# read settings.json
+from lib.at_client import io_util
+ssid, password, atSign = io_util.read_settings()
+del io_util # make space in memory
+
+# connect to wifi
+from lib import wifi
+print('Connecting to WiFi %s...' % ssid)
+wifi.init_wlan(ssid, password)
+del ssid, password, wifi # make space in memory
+
+# connect and pkam authenticate into secondary
+from lib.at_client import at_client
+atClient = at_client.AtClient(atSign, writeKeys=True) # set writeKeys=False once you've wrote your keys at least once.
+atClient.pkam_authenticate(verbose=True)
+del at_client
+```
+
+3. Send data like so:
+
+```py
+# 'led' is the key name
+# `value` is the value you want to store into the server
+# this will write the value into the device's atServer as a key like "public:led@bob" with value `value`.
+data = atClient.put_public('led', str(value)) # `data` is the response from the server. You will usually get a number (which is the commitId).
+```
