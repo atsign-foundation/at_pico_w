@@ -1,3 +1,4 @@
+# TODO move imports to inside functions to delete them later
 import time
 import usocket
 import ussl as ssl # type: ignore
@@ -7,28 +8,31 @@ class RemoteSecondary:
 
     # rootUrl e.g. root.atsign.org:64
     # atSign e.g. "alice" or "@alice"
-    def __init__(self, atSign: str, rootUrl='root.atsign.org:64', wlan=None):
+    def __init__(self, atSign: str, rootUrl='root.atsign.org:64', ss_address=None, wlan=None):
         self.rootUrl = rootUrl 
         self.atSign = at_utils.format_atSign(atSign)
+        self.secondary_address = ss_address
         self.wlan = wlan
 
     def is_connected(self) -> bool:
         return self.ss is not None
 
-    # returns two variables: response, command
-    # executes verb on secondary
+    # TODO add verbose option
     def send_verb(self, verb: str):
+        """
+        Returns a Tuple (response, command)
+        """
         self.ss.write((verb + "\r\n").encode())
         response = b''
         time.sleep(2)
         data = self.ss.read()
         time.sleep(2)
-        print('data from verb: %s' % data)
         if data is not None:
             response += data
             parts = response.decode().split('\n')
         else:
             parts = ['', '']
+        time.sleep(1)
             
         return parts[0], parts[1]
 
@@ -44,19 +48,22 @@ class RemoteSecondary:
             # rootPort = int(self.rootUrl.split(':')[1])
             rootPort = 64
             # print('Finding secondary...')
+            time.sleep(1)
             self.secondary_address = self.find_secondary(self.atSign, rootHost, rootPort)
             time.sleep(2)
         else:
             self.secondary_address = secondary_address
 
         ss_split = self.secondary_address.split(":")
-        print(ss_split)
+        # print(ss_split)
         address = ss_split[0]
         port = ss_split[1]
 
+        time.sleep(1)
         a = usocket.getaddrinfo(address, int(port))[0][-1]
         s = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM) 
 
+        time.sleep(1)
         try:
             s.connect(a)
         except OSError as e:
@@ -64,7 +71,8 @@ class RemoteSecondary:
                 print("In Progress")
             else:
                 raise e
-            
+        
+        time.sleep(1)
         s.setblocking(False)
         ss = ssl.wrap_socket(s, do_handshake = True)
         self.ss = ss
@@ -94,7 +102,7 @@ class RemoteSecondary:
 
         response = b''
         data = ss.read()
-        time.sleep(0.5)
+        time.sleep(1)
         response += data
         secondary = response.decode().replace('@', '')
         secondary = secondary.replace('\r\n', '')

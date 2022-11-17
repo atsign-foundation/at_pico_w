@@ -3,20 +3,14 @@
 
 class AtClient:
 
-    def __init__(self, atSign: str, rootUrl: str = 'root.atsign.org:64'):
-        self.atSign = atSign
+    def __init__(self, atSign: str, rootUrl: str = 'root.atsign.org:64', writeKeys:bool=True, secondary_address=None):
+        from lib.at_client.at_utils import format_atSign
+        self.atSign = format_atSign(atSign)
+        del format_atSign
         self.rootUrl = rootUrl
-        self._initialize_keys() 
-        self._initialize_remote_secondary()
-
-    def _initialize_remote_secondary(self):
-        """
-        intializes remote secondary object and connects to secondary allowing for send_verb to work
-        Assume already connected to WiFi. See lib.wifi for more info.
-        """
-        from lib.at_client.remote_secondary import RemoteSecondary
-        self.remote_secondary = RemoteSecondary(self.atSign, self.rootUrl)
-        self.remote_secondary.connect_to_secondary() # can now run send_verb
+        if writeKeys:
+            self._initialize_keys()
+        self._initialize_remote_secondary(secondary_address)
 
     def _initialize_keys(self):
         """
@@ -26,6 +20,62 @@ class AtClient:
         """
         from lib.at_client.keys_util import initialize_keys
         initialize_keys(self.atSign)
+        del initialize_keys
+
+    def _initialize_remote_secondary(self, secondary_address=None):
+        """
+        intializes remote secondary object and connects to secondary allowing for send_verb to work
+        Assume already connected to WiFi. See lib.wifi for more info.
+        """
+        from lib.at_client.remote_secondary import RemoteSecondary
+        self.remote_secondary = RemoteSecondary(self.atSign, self.rootUrl)
+        self.remote_secondary.connect_to_secondary(secondary_address=secondary_address) # can now run send_verb
+        del RemoteSecondary
+
+
+    # Not working due to RSA decryption
+    # def _get_shared_key_from_other(self, otherAtSign: str):
+    #     """
+    #     otherAtSign: the atsign of the other person that is sharing data with you.
+
+    #     does lookup:shared_key@otherAtSign and decrypts the response with your encrypt private key to get the
+    #     shared aes 256 encryption key
+    #     """
+    #     from lib.at_client.at_utils import format_atSign
+    #     # get the AES shared key from the other person
+    #     command = 'lookup:shared_key%s' %format_atSign(otherAtSign) # lookup:shared_key@bob
+    #     del format_atSign
+
+    #     # run command
+    #     response, command = self.send_verb(command)
+    #     response = response.replace('data:', '')
+    #     del command
+
+    #     print('response: %s' % response)
+
+    #     # decrypt with my encrypt private key
+    #     from lib.at_client.keys_util import get_pem_encrypt_private_key_from_file
+    #     encryptPrivateKey = get_pem_encrypt_private_key_from_file(self.atSign)
+    #     del get_pem_encrypt_private_key_from_file
+
+    #     # construct rsa private key
+    #     from lib.third_party import rsa
+    #     rsaPrivateKey = rsa.PrivateKey(encryptPrivateKey[0], encryptPrivateKey[1], encryptPrivateKey[2], encryptPrivateKey[3], encryptPrivateKey[4])
+    #     del encryptPrivateKey
+
+    #     # get the encrypted aes shared key
+    #     verb = 'lookup:shared_key%s' %otherAtSign
+    #     response, command = self.send_verb(verb)
+    #     response = response.replace('data:', '')
+    #     del command
+    #     print(response)
+
+    #     # decrypt the encrypted aes shared key with our rsaPrivateKey
+    #     someData = rsa.decrypt(response, rsaPrivateKey)
+    #     print(someData)
+    #     import ubinascii
+    #     shared_aes_key = str(ubinascii.b2a_base64(someData)).rstrip('\n')
+    #     return shared_aes_key
 
     def send_verb(self, verb_command: str):
         """
@@ -38,29 +88,65 @@ class AtClient:
             raise Exception("Remote secondary is not initialized. Please call _initialize_remote_secondary() first.")
         return self.remote_secondary.send_verb(verb_command) # returns (response, command)
 
-    def pkam_authenticate(self, verbose = False):
+    # TODO ADD VERBOSE OPTION
+    def put_public(self, keyName: str, value: str, ttr: int = 200) -> str:
+        """
+        keyName: the key name
+        value: the value to put
+        ttr: time to refresh the public key, default 1 second
+        ttr == -1 means permanent cache the key
+        ttr == 0 means do not cache the key
+        ttr > 0 means refresh after ttr milliseconds
+
+        return: response from the secondary
+        """
+        from lib.at_client.at_utils import format_atSign
+        verb = 'update:public:%s%s %s' %(keyName, format_atSign(self.atSign), value)
+        del format_atSign
+        import time
+        time.sleep(1)
+        print('sending verb: %s' % verb)
+        response, command = self.send_verb(verb)
+        time.sleep(1)
+        del command, time
+        response = response.replace('data:', '')
+        return response
+
+    def pkam_authenticate(self, verbose = False) -> None:
         """
         to run this function, you must have your .atKeys file in the keys/ folder and _initialize_keys() must be called first (which is already done in the constructor)
         """
         from lib.at_client.at_utils import without_prefix
         from lib.at_client import keys_util
         from lib.third_party import rsa
-        from lib.pem_service import b42_urlsafe_encode
 
         atSign = self.atSign
         atSignWithoutPrefix = without_prefix(atSign)
 
-        print('Sending from:%s' % atSign)
+        if verbose:
+            print('Sending from:%s' % atSign)
         response, command = self.remote_secondary.send_verb('from:%s' %atSignWithoutPrefix)
+        del command, atSignWithoutPrefix
         challenge = response.replace('@data:', '')
-        print('Challenge: %s' % challenge)
-        print('Digesting...')
+        del response
+        if verbose:
+            print('Challenge: %s' % challenge)
+            print('Digesting...')
+
         pemPkamPrivateKey = keys_util.get_pem_pkam_private_key_from_file(atSign) # parameters
         rsaPkamPrivateKey = rsa.PrivateKey(pemPkamPrivateKey[0], pemPkamPrivateKey[1], pemPkamPrivateKey[2], pemPkamPrivateKey[3], pemPkamPrivateKey[4])
-        signature = b42_urlsafe_encode(rsa.sign(challenge, rsaPkamPrivateKey, 'SHA-256'))
-        print('Signature: %s' % str(signature))
-        response, command = self.remote_secondary.send_verb('pkam:' + signature)
-        print(response) # data:success
+        del pemPkamPrivateKey, atSign
 
-        del signature, challenge, rsaPkamPrivateKey, pemPkamPrivateKey
-        pass
+        from lib.pem_service import b42_urlsafe_encode
+        signature = b42_urlsafe_encode(rsa.sign(challenge, rsaPkamPrivateKey, 'SHA-256'))
+        del b42_urlsafe_encode, challenge, rsaPkamPrivateKey
+
+        if verbose:
+            print('Signature: %s' % str(signature))
+        response, command = self.remote_secondary.send_verb('pkam:' + signature)
+        del command
+
+        if verbose:
+            print(response) # data:success
+
+        del signature
