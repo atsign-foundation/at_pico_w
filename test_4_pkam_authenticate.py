@@ -2,8 +2,8 @@
 
 def main():
     import sys
-    shouldRun = str(input('Run? (y/n): '))
-    if shouldRun == 'n':
+    shouldRun = str(input('Run? (y/n): ')).lower()
+    if shouldRun != 'y':
         sys.exit(1)
     del sys
 
@@ -18,7 +18,7 @@ def main():
     del ssid, password, wifi
 
     atClient = at_client.AtClient(atSign)
-    atClient.pkam_authenticate()
+    atClient.pkam_authenticate(verbose=True)
 
 if __name__ == '__main__':
     main()
