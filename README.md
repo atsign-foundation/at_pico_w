@@ -15,7 +15,8 @@ For UMass 2022 IoT Projects.
   * [2. Getting Started - Blinking the LED](#2-getting-started---blinking-the-led)
   * [3. Git Cloning](#3-git-cloning)
   * [4. Connecting to WiFi](#4-connecting-to-wifi)
-  * [5. Authenticating into your atSign's server](#5-authenticating-into-your-atsign-s-server)
+  * [5. Authenticating into your atSign's server](#5-authenticating-into-your-atsigns-server)
+  * [6. Sending data](#6-sending-data)
 
 # Prerequisites
 
