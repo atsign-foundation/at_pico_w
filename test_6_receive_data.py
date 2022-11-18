@@ -7,9 +7,6 @@ def main():
         sys.exit(1)
     del sys
 
-    # appAtSign = input('Enter app atSign: ')
-    appAtSign = '@smoothalligator'
-
     # read settings.json
     from lib.at_client import io_util
     ssid, password, atSign = io_util.read_settings()
@@ -28,7 +25,9 @@ def main():
     del at_client
 
     for i in range(5000):
-        data = atClient.get_public('instructions', appAtSign)
+        key = 'instructions'
+        appAtSign = '@smoothalligator'
+        data = atClient.get_public(key, appAtSign)
         print(data)
 
 
