@@ -15,7 +15,9 @@ For UMass 2022 IoT Projects.
   * [2. Getting Started - Blinking the LED](#2-getting-started---blinking-the-led)
   * [3. Git Cloning](#3-git-cloning)
   * [4. Connecting to WiFi](#4-connecting-to-wifi)
-  * [5. Authenticating into your atSign's server](#5-authenticating-into-your-atsign-s-server)
+  * [5. Authenticating into your atSign's server](#5-authenticating-into-your-atsigns-server)
+  * [6. Sending data](#6-sending-data)
+  * [7. Receiving data](#7-receiving-data)
 
 # Prerequisites
 
@@ -250,4 +252,41 @@ del at_client
 # `value` is the value you want to store into the server
 # this will write the value into the device's atServer as a key like "public:led@bob" with value `value`.
 data = atClient.put_public('led', str(value)) # `data` is the response from the server. You will usually get a number (which is the commitId).
+```
+
+## 7. Receiving data
+
+1. Just like in step 6, make sure you have done the following:
+
+- Uploaded your .atKeys to the Pico W (via the FTP server)
+- Have passed tests 1, 2, 3, and 4 (wifi, find secondary address, initializing keys, and pkam authenticating).
+- Your other atSign is onboarded (a.k.a. their .atKeys file has been generated). This is to ensure that the server of the other atSign exists.
+
+2. Copy the boiler plate code (same as Step 6)
+
+```py
+# read settings.json
+from lib.at_client import io_util
+ssid, password, atSign = io_util.read_settings()
+del io_util # make space in memory
+
+# connect to wifi
+from lib import wifi
+print('Connecting to WiFi %s...' % ssid)
+wifi.init_wlan(ssid, password)
+del ssid, password, wifi # make space in memory
+
+# connect and pkam authenticate into secondary
+from lib.at_client import at_client
+atClient = at_client.AtClient(atSign, writeKeys=True) # you can set writeKeys=False once you've written the keys at least once.
+atClient.pkam_authenticate(verbose=True)
+del at_client
+```
+
+3. Receive data from another atSign's server like so:
+
+```py
+key = 'instructions'
+appAtSign = '@smoothalligator'
+data = atClient.get_public(key, appAtSign)
 ```

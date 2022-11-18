@@ -112,6 +112,33 @@ class AtClient:
         response = response.replace('data:', '')
         return response
 
+    def get_public(self, keyName: str, otherAtSign:str) -> str:
+        """
+        """
+        from lib.at_client.at_utils import format_atSign
+        otherAtSign = format_atSign(otherAtSign)
+        del format_atSign
+        import time
+
+        # 1. delete cached key to do a fresh plookup in the next step
+        verb = 'delete:cached:public:%s%s' %(keyName, otherAtSign)
+        time.sleep(1)
+        # print('Executing verb %s' %verb)
+        response, command = self.send_verb(verb)
+        del command
+        time.sleep(1)
+
+        # 2. get the public key
+        verb = 'plookup:%s%s' %(keyName, otherAtSign)
+        time.sleep(1)
+        # print('Executing verb %s' %verb)
+        response, command = self.send_verb(verb)
+        del command
+        time.sleep(1)
+
+        response = response.replace('data:', '')
+        return response
+
     def pkam_authenticate(self, verbose = False) -> None:
         """
         to run this function, you must have your .atKeys file in the keys/ folder and _initialize_keys() must be called first (which is already done in the constructor)
