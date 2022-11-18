@@ -120,16 +120,8 @@ class AtClient:
         del format_atSign
         import time
 
-        # 1. delete cached key to do a fresh plookup in the next step
-        verb = 'delete:cached:public:%s%s' %(keyName, otherAtSign)
-        time.sleep(1)
-        # print('Executing verb %s' %verb)
-        response, command = self.send_verb(verb)
-        del command
-        time.sleep(1)
-
-        # 2. get the public key
-        verb = 'plookup:%s%s' %(keyName, otherAtSign)
+        # get the public key
+        verb = 'plookup:bypassCache:true:%s%s' %(keyName, otherAtSign)
         time.sleep(1)
         # print('Executing verb %s' %verb)
         response, command = self.send_verb(verb)
