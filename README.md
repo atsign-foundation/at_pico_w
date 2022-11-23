@@ -221,7 +221,6 @@ and that you have the .atKeys file in the `/keys/` directory.
 
 - Uploaded your .atKeys to the Pico W (via the FTP server)
 - Have passed tests 1, 2, 3, and 4 (wifi, find secondary address, initializing keys, and pkam authenticating).
-- Your other atSign is onboarded (a.k.a. their .atKeys file has been generated). This is to ensure that the server of the other atSign exists.
 
 2. Copy the following code to 1. read the settings.json, 2. connect to the WiFi, and 3. authneticate into your atSign's server.
 
@@ -260,7 +259,7 @@ data = atClient.put_public('led', str(value)) # `data` is the response from the 
 
 - Uploaded your .atKeys to the Pico W (via the FTP server)
 - Have passed tests 1, 2, 3, and 4 (wifi, find secondary address, initializing keys, and pkam authenticating).
-- Your other atSign is onboarded (a.k.a. their .atKeys file has been generated). This is to ensure that the server of the other atSign exists.
+- Your other atSign has an existent public key on its atServer for it to be received by the Pico.
 
 2. Copy the boiler plate code (same as Step 6)
 
