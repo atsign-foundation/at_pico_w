@@ -102,6 +102,8 @@ Now you should have all of the code in your folder. This is the fork you created
 
 <img width=250px src="https://i.imgur.com/CC7bEFI.png">
 
+5. Configure the project via Ctrl + Shift + P (or Cmd + Shift + P) and type `Configure Project` and press Enter just like before to setup the Pico project.
+
 ## 4. Connecting to WiFi
 
 1. Edit the `settings.json` by adding your WiFi and Password, leave the atSign blank for now.
