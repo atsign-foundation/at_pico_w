@@ -102,7 +102,7 @@ Now you should have all of the code in your folder. This is the fork you created
 
 <img width=250px src="https://i.imgur.com/CC7bEFI.png">
 
-5. Configure the project via Ctrl + Shift + P (or Cmd + Shift + P) and type `Configure Project` and press Enter just like before to setup the Pico project.
+5. Configure the project via Ctrl + Shift + P (or Cmd + Shift + P) and type `Configure Project` and press Enter just like before to setup the Pico project. Then run the `Upload Project` command.
 
 ## 4. Connecting to WiFi
 
