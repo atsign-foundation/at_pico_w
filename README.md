@@ -227,23 +227,22 @@ and that you have the .atKeys file in the `/keys/` directory.
 2. Copy the following code to 1. read the settings.json, 2. connect to the WiFi, and 3. authneticate into your atSign's server.
 
 ```py
-
 # read settings.json
-from lib.at_client import io_util
-ssid, password, atSign = io_util.read_settings()
-del io_util # make space in memory
+from lib.at_client.io_util import read_settings
+ssid, password, atSign = read_settings()
+del read_settings
 
 # connect to wifi
-from lib import wifi
 print('Connecting to WiFi %s...' % ssid)
-wifi.init_wlan(ssid, password)
-del ssid, password, wifi # make space in memory
+from lib.wifi import init_wlan
+init_wlan(ssid, password)
+del ssid, password, init_wlan
 
-# connect and pkam authenticate into secondary
-from lib.at_client import at_client
-atClient = at_client.AtClient(atSign, writeKeys=True) # set writeKeys=False once you've wrote your keys at least once.
+# authenticate into server
+from lib.at_client.at_client import AtClient
+atClient = AtClient(atSign, writeKeys=True)
+del AtClient
 atClient.pkam_authenticate(verbose=True)
-del at_client
 ```
 
 3. Send data like so:
@@ -267,27 +266,27 @@ data = atClient.put_public('led', str(value)) # `data` is the response from the 
 
 ```py
 # read settings.json
-from lib.at_client import io_util
-ssid, password, atSign = io_util.read_settings()
-del io_util # make space in memory
+from lib.at_client.io_util import read_settings
+ssid, password, atSign = read_settings()
+del read_settings
 
 # connect to wifi
-from lib import wifi
 print('Connecting to WiFi %s...' % ssid)
-wifi.init_wlan(ssid, password)
-del ssid, password, wifi # make space in memory
+from lib.wifi import init_wlan
+init_wlan(ssid, password)
+del ssid, password, init_wlan
 
-# connect and pkam authenticate into secondary
-from lib.at_client import at_client
-atClient = at_client.AtClient(atSign, writeKeys=True) # you can set writeKeys=False once you've written the keys at least once.
+# authenticate into server
+from lib.at_client.at_client import AtClient
+atClient = AtClient(atSign)
+del AtClient
 atClient.pkam_authenticate(verbose=True)
-del at_client
 ```
 
 3. Receive data from another atSign's server like so:
 
 ```py
-key = 'instructions'
-appAtSign = '@smoothalligator'
+key = 'instructions' # the key that exists in the other atSign's server
+appAtSign = '@smoothalligator' # the atSign you are receiving the data from
 data = atClient.get_public(key, appAtSign)
 ```
