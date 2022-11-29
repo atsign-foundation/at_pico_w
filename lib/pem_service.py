@@ -1,7 +1,3 @@
-import io
-import ubinascii
-import uasn1
-
 def read_pem(input_data):
     """Read PEM formatted input."""
     data = []
@@ -20,30 +16,32 @@ def read_pem(input_data):
     if state != 2:
         raise ValueError('No PEM encoded input found')
     data = ''.join(data)
-    data = ubinascii.a2b_base64(data)
+    from ubinascii import a2b_base64
+    data = a2b_base64(data)
     return data
 
 def strid(id):
     """Return a string representation of a ASN.1 id."""
-    if id == uasn1.Boolean:
+    from uasn1 import Boolean, Integer, OctetString, Null, BitString, ObjectIdentifier, Enumerated, Sequence, Set, Null
+    if id == Boolean:
         s = 'BOOLEAN'
-    elif id == uasn1.Integer:
+    elif id == Integer:
         s = 'INTEGER'
-    elif id == uasn1.OctetString:
+    elif id == OctetString:
         s = 'OCTET STRING'
-    elif id == uasn1.Null:
+    elif id == Null:
         s = 'NULL'
-    elif id == uasn1.BitString:
+    elif id == BitString:
         s = 'BIT STRING'
-    elif id == uasn1.ObjectIdentifier:
+    elif id == ObjectIdentifier:
         s = 'OBJECT IDENTIFIER'
-    elif id == uasn1.Enumerated:
+    elif id == Enumerated:
         s = 'ENUMERATED'
-    elif id == uasn1.Sequence:
+    elif id == Sequence:
         s = 'SEQUENCE'
-    elif id == uasn1.Set:
+    elif id == Set:
         s = 'SET'
-    elif id == uasn1.Null:
+    elif id == Null:
         s = 'NULL'
     else:
         s = '%#02x' % id
@@ -51,15 +49,16 @@ def strid(id):
  
 def strclass(id):
     """Return a string representation of an ASN.1 class."""
-    if id == uasn1.ClassUniversal:
+    from uasn1 import ClassUniversal, ClassApplication, BitString, ClassContext, ClassPrivate
+    if id == ClassUniversal:
         s = 'UNIVERSAL'
-    elif id == uasn1.ClassApplication:
+    elif id == ClassApplication:
         s = 'APPLICATION'
-    elif id == uasn1.BitString:
+    elif id == BitString:
         s = 'BIT STRING'
-    elif id == uasn1.ClassContext:
+    elif id == ClassContext:
         s = 'CONTEXT'
-    elif id == uasn1.ClassPrivate:
+    elif id == ClassPrivate:
         s = 'PRIVATE'
     else:
         raise ValueError('Illegal class: %#02x' % id)
@@ -71,16 +70,17 @@ def strtag(tag):
 
 def prettyprint(input_data, output, indent=0):
     """Pretty print ASN.1 data."""
+    from uasn1 import TypePrimitive, TypeConstructed
     while not input_data.eof():
         tag = input_data.peek()
         # print(output.getvalue())
-        if tag[1] == uasn1.TypePrimitive:
+        if tag[1] == TypePrimitive:
             tag, value = input_data.read()
             output.write(' ' * indent)
             output.write('[%s] %s (value %s)' %
                          (strclass(tag[2]), strid(tag[0]), repr(value)))
             output.write('\n')
-        elif tag[1] == uasn1.TypeConstructed:
+        elif tag[1] == TypeConstructed:
             output.write(' ' * indent)
             output.write('[%s] %s:\n' % (strclass(tag[2]), strid(tag[0])))
             input_data.enter()
@@ -100,10 +100,12 @@ def get_pem_parameters(pem, type: str):
     else:
         print('invalid data')
 
-    dec = uasn1.Decoder()
+    from uasn1 import Decoder
+    dec = Decoder()
     dec.start(data)
 
-    s = io.StringIO()
+    from io import StringIO
+    s = StringIO()
     prettyprint(dec, s)
     # print(s.getvalue())
     values = s.getvalue().split('\n')[2:7] # get the indexes [2 -> 6]
@@ -141,10 +143,12 @@ def get_pem_key(pkcs8, type: str):
     # print('data')
     # print(data)
 
-    dec = uasn1.Decoder()
+    from uasn1 import Decoder
+    dec = Decoder()
     dec.start(data)
 
-    s = io.StringIO()
+    from io import StringIO
+    s = StringIO()
     prettyprint(dec, s)
     # print(s.getvalue())
     value = s.getvalue().split('\n')[5] # get the indexes [2 -> 6]
@@ -182,12 +186,12 @@ def get_public_n_e(publicRsaKeyDecrypted: str):
     formatted_pem = format_pem(publicRsaKeyDecrypted, "public")
     input_data = read_pem(formatted_pem)
 
-    from lib import uasn1
-    dec = uasn1.Decoder()
+    from uasn1 import Decoder
+    dec = Decoder()
     dec.start(input_data)
 
-    import io
-    s = io.StringIO()
+    from io import StringIO
+    s = StringIO()
 
     prettyprint(dec, s)
 
@@ -195,20 +199,23 @@ def get_public_n_e(publicRsaKeyDecrypted: str):
 
     incorrect_ascii = s.getvalue().split('\n')[4].replace('  [UNIVERSAL] BIT STRING (value \'', '').replace('\')', '') 
     # print('incorrect_ascii %s' %incorrect_ascii)
-    hex_str = ubinascii.hexlify(ubinascii.a2b_base64(incorrect_ascii), ' ').decode() # '00 30 82...'
+    from ubinascii import hexlify, a2b_base64, unhexlify
+    hex_str = hexlify(a2b_base64(incorrect_ascii), ' ').decode() # '00 30 82...'
     # print('hex_str %s' %hex_str)
     correct_hex_str = hex_str[3:]
     # print('hex_str removed %s' %correct_hex_str)
     # convert back to ascii
-    correct_ascii = ubinascii.unhexlify(correct_hex_str.replace(' ', ''))
+    correct_ascii = unhexlify(correct_hex_str.replace(' ', ''))
     # print(correct_ascii)
+    del hexlify, a2b_base64, unhexlify
 
     input_data = correct_ascii
-    dec = uasn1.Decoder()
+    dec = Decoder()
     dec.start(input_data)
+    del Decoder
 
-    s = io.StringIO()
-
+    s = StringIO()
+    del StringIO
     prettyprint(dec, s) 
     # print(s.getvalue())
 

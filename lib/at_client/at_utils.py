@@ -1,5 +1,3 @@
-# TODO move import inside
-import ubinascii
 
 def without_prefix(atSign: str):
     if atSign.startswith('@'):
@@ -12,6 +10,7 @@ def format_atSign(atSign: str):
     return atSign
 
 def str_to_bytes(s: str) -> bytes:
+    import ubinascii
     return ubinascii.a2b_base64(s)
 
 def str_to_bytearray(s: str) -> bytearray:
@@ -21,4 +20,5 @@ def bytearray_to_str(b: bytearray) -> str:
     return str(b)
 
 def bytes_to_str(b: bytes) -> str:
+    import ubinascii
     return str(ubinascii.b2a_base64(b))
