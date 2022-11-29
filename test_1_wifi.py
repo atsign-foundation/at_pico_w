@@ -7,15 +7,16 @@ def main():
     >>> Connecting to Soup (Ctrl+C to stop)...
     >>> Connected to WiFi Soup: True
     """
-    from lib.at_client import io_util
-    from lib import wifi
+    from lib.at_client.io_util import read_settings
+    from lib.wifi import init_wlan
 
     # Add your SSID an Password in `settings.json`
-    ssid, password, atSign = io_util.read_settings()
-    del atSign # atSign not needed in memory right now
+    ssid, password, atSign = read_settings()
+    del atSign, read_settings # atSign not needed in memory right now
 
     print('\nConnecting to %s (Ctrl+C to stop)...' % ssid)
-    wlan = wifi.init_wlan(ssid, password)
+    wlan = init_wlan(ssid, password)
+    del init_wlan
 
     if not wlan == None:
         print('Connected to WiFi %s: %s' %(ssid, str(wlan.isconnected())))

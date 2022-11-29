@@ -6,27 +6,24 @@ def main():
     if(shouldRun != 'y'):
         sys.exit(1)
     del sys
+    
+    from lib.at_client.io_util import read_settings
+    ssid, password, atSign = read_settings()
+    del read_settings
 
-    # read settings.json
-    from lib.at_client import io_util
-    ssid, password, atSign = io_util.read_settings()
-    del io_util # make space in memory
-
-    # connect to wifi
-    from lib import wifi
     print('Connecting to WiFi %s...' % ssid)
-    wifi.init_wlan(ssid, password)
-    del ssid, password, wifi # make space in memory
+    from lib.wifi import init_wlan
+    init_wlan(ssid, password)
+    del ssid, password, init_wlan
 
-    # connect and pkam authenticate into secondary
-    from lib.at_client import at_client
-    atClient = at_client.AtClient(atSign, writeKeys=True)
+    from lib.at_client.at_client import AtClient
+    atClient = AtClient(atSign)
+    del AtClient
     atClient.pkam_authenticate(verbose=True)
-    del at_client
 
     for i in range(5000):
-        key = 'instructions'
-        appAtSign = '@smoothalligator'
+        key = 'test'
+        appAtSign = '@22easy'
         data = atClient.get_public(key, appAtSign)
         print(data)
 

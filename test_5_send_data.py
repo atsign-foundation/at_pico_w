@@ -6,30 +6,26 @@ def main():
         sys.exit(1)
     del sys # make space in memory
 
-    # read settings.json
-    from lib.at_client import io_util
-    ssid, password, atSign = io_util.read_settings()
-    del io_util # make space in memory
+    from lib.at_client.io_util import read_settings
+    ssid, password, atSign = read_settings()
+    del read_settings
 
-    # connect to wifi
-    from lib import wifi
     print('Connecting to WiFi %s...' % ssid)
-    wifi.init_wlan(ssid, password)
-    del ssid, password, wifi # make space in memory
+    from lib.wifi import init_wlan
+    init_wlan(ssid, password)
+    del ssid, password, init_wlan
 
-    # connect and pkam authenticate into secondary
-    from lib.at_client import at_client
-    atClient = at_client.AtClient(atSign, writeKeys=True)
+    from lib.at_client.at_client import AtClient
+    atClient = AtClient(atSign)
+    del AtClient
     atClient.pkam_authenticate(verbose=True)
-    del at_client
 
-    import time
     value = 0
-
-    import machine
-    led = machine.Pin("LED", machine.Pin.OUT)
+    from machine import Pin
+    from utime import sleep
+    led = Pin("LED", Pin.OUT)
     for i in range(100):
-        time.sleep(5)
+        sleep(5)
         # actuate the onboard LED
         if value == 0:
             led.off()
@@ -37,9 +33,9 @@ def main():
             led.on()
 
         # emit the data
-        time.sleep(2)
+        sleep(2)
         data = atClient.put_public('led', str(value)) # update:public:led@soccer0 0
-        time.sleep(2)
+        sleep(2)
 
         print('response: data:%s' %data)
 
