@@ -7,17 +7,18 @@ def main():
         sys.exit(1)
     del sys
 
-    from lib.at_client import io_util
-    from lib import wifi
-    from lib.at_client import at_client
-    ssid, password, atSign = io_util.read_settings()
-    del io_util
+    from lib.at_client.io_util import read_settings
+    ssid, password, atSign = read_settings()
+    del read_settings
 
     print('Connecting to WiFi %s...' % ssid)
-    wifi.init_wlan(ssid, password)
-    del ssid, password, wifi
+    from lib.wifi import init_wlan
+    init_wlan(ssid, password)
+    del ssid, password, init_wlan
 
-    atClient = at_client.AtClient(atSign)
+    from lib.at_client.at_client import AtClient
+    atClient = AtClient(atSign)
+    del AtClient
     atClient.pkam_authenticate(verbose=True)
 
 if __name__ == '__main__':

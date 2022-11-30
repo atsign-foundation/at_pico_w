@@ -1,15 +1,18 @@
-# TODO move imports inside functions to delete later
-import ujson
-from lib.at_client import at_utils
 
 def read_settings():
     with open('settings.json') as f:
-        info = ujson.loads(f.read())
+        from ujson import loads
+        info = loads(f.read())
+        del loads
         return info['ssid'], info['password'], info['atSign'].replace('@', '')
     
 def read_key(atSign: str):
-    atSign = at_utils.without_prefix(atSign)
+    from lib.at_client.at_utils import without_prefix
+    atSign = without_prefix(atSign)
+    del without_prefix
     path = '/keys/@' + atSign + '_key.atKeys'
     with open(path) as f:
-        info = ujson.loads(f.read())
+        from ujson import loads
+        info = loads(f.read())
+        del loads
         return info['aesEncryptPrivateKey'], info['aesEncryptPublicKey'], info['aesPkamPrivateKey'], info['aesPkamPublicKey'], info['selfEncryptionKey']

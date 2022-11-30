@@ -1,18 +1,14 @@
-# TODO move imports to inside functions to delete them later
-import time
-import usocket
-import ussl as ssl # type: ignore
-from lib.at_client import at_utils
-
 class RemoteSecondary:
 
     # rootUrl e.g. root.atsign.org:64
     # atSign e.g. "alice" or "@alice"
     def __init__(self, atSign: str, rootUrl='root.atsign.org:64', ss_address=None, wlan=None):
         self.rootUrl = rootUrl 
-        self.atSign = at_utils.format_atSign(atSign)
+        from lib.at_client.at_utils import format_atSign
+        self.atSign = format_atSign(atSign)
+        del format_atSign
         self.secondary_address = ss_address
-        self.wlan = wlan
+        # self.wlan = wlan not needed atm
 
     def is_connected(self) -> bool:
         return self.ss is not None
@@ -22,17 +18,18 @@ class RemoteSecondary:
         """
         Returns a Tuple (response, command)
         """
+        from utime import sleep
         self.ss.write((verb + "\r\n").encode())
         response = b''
-        time.sleep(2)
+        sleep(2)
         data = self.ss.read()
-        time.sleep(2)
+        sleep(2)
         if data is not None:
             response += data
             parts = response.decode().split('\n')
         else:
             parts = ['', '']
-        time.sleep(1)
+        sleep(1)
             
         return parts[0], parts[1]
 
@@ -42,28 +39,33 @@ class RemoteSecondary:
     # initializes self.ss (usocket.socket object), secondary_address nullable
     def connect_to_secondary(self, secondary_address=None) -> None:
         # print('Connecting to secondary... ', end="")
-
+        from utime import sleep
         if(secondary_address == None):
             rootHost = self.rootUrl.split(':')[0]
             # rootPort = int(self.rootUrl.split(':')[1])
             rootPort = 64
             # print('Finding secondary...')
-            time.sleep(1)
+            sleep(1)
             self.secondary_address = self.find_secondary(self.atSign, rootHost, rootPort)
-            time.sleep(2)
+            sleep(2)
         else:
             self.secondary_address = secondary_address
 
         ss_split = self.secondary_address.split(":")
-        # print(ss_split)
+        if len(ss_split) != 2:
+            raise Exception("Invalid secondary address: " + self.secondary_address)
+        print(ss_split)
         address = ss_split[0]
         port = ss_split[1]
+        del ss_split
 
-        time.sleep(1)
-        a = usocket.getaddrinfo(address, int(port))[0][-1]
-        s = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM) 
+        sleep(1)
+        from usocket import getaddrinfo, socket, AF_INET, SOCK_STREAM
+        a = getaddrinfo(address, int(port))[0][-1]
+        s = socket(AF_INET, SOCK_STREAM) 
+        del getaddrinfo, socket, AF_INET, SOCK_STREAM
 
-        time.sleep(1)
+        sleep(1)
         try:
             s.connect(a)
         except OSError as e:
@@ -72,17 +74,24 @@ class RemoteSecondary:
             else:
                 raise e
         
-        time.sleep(1)
+        sleep(1)
+        del sleep
         s.setblocking(False)
-        ss = ssl.wrap_socket(s, do_handshake = True)
+        from ussl import wrap_socket
+        ss = wrap_socket(s, do_handshake = True)
+        del wrap_socket
         self.ss = ss
         
     # returns the secondary address (as a string) of a given atSign, rootHost, and rootPort
     def find_secondary(self, atSign: str, rootHost: str = 'root.atsign.org', rootPort: int = 64) -> str:
-        atSign = at_utils.without_prefix(atSign)
+        from lib.at_client.at_utils import without_prefix
+        atSign = without_prefix(atSign)
+        del without_prefix
         # print('Finding secondary for @' + atSign + '...')
-        a = usocket.getaddrinfo(rootHost, rootPort)[0][-1]
-        s = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM) 
+        from usocket import getaddrinfo, socket, AF_INET, SOCK_STREAM
+        a = getaddrinfo(rootHost, rootPort)[0][-1]
+        s = socket(AF_INET, SOCK_STREAM) 
+        del getaddrinfo, socket, AF_INET, SOCK_STREAM
 
         try:
             s.connect(a)
@@ -92,17 +101,21 @@ class RemoteSecondary:
             else:
                 raise e
             
+        from utime import sleep
         s.setblocking(False)
-        time.sleep(1)
-        ss = ssl.wrap_socket(s, do_handshake = True)
-        time.sleep(1)
+        sleep(1)
+        from ussl import wrap_socket
+        ss = wrap_socket(s, do_handshake = True)
+        del wrap_socket
+        sleep(1)
 
         ss.write((atSign + "\r\n").encode())
-        time.sleep(1)
+        sleep(1)
 
         response = b''
         data = ss.read()
-        time.sleep(1)
+        sleep(1)
+        del sleep
         response += data
         secondary = response.decode().replace('@', '')
         secondary = secondary.replace('\r\n', '')

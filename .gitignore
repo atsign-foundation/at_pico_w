@@ -3,3 +3,4 @@ project.pico-go
 .picowgo
 blink.py
 .DS_STORE
+keys/

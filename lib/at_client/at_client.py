@@ -29,8 +29,8 @@ class AtClient:
         """
         from lib.at_client.remote_secondary import RemoteSecondary
         self.remote_secondary = RemoteSecondary(self.atSign, self.rootUrl)
-        self.remote_secondary.connect_to_secondary(secondary_address=secondary_address) # can now run send_verb
         del RemoteSecondary
+        self.remote_secondary.connect_to_secondary(secondary_address=secondary_address) # can now run send_verb
 
 
     # Not working due to RSA decryption
@@ -89,7 +89,7 @@ class AtClient:
         return self.remote_secondary.send_verb(verb_command) # returns (response, command)
 
     # TODO ADD VERBOSE OPTION
-    def put_public(self, keyName: str, value: str, ttr: int = 200) -> str:
+    def put_public(self, keyName: str, value: str, ttr:int = 1000, namespace=None) -> str:
         """
         keyName: the key name
         value: the value to put
@@ -100,33 +100,42 @@ class AtClient:
 
         return: response from the secondary
         """
+        del ttr # TODO: implement ttr
+        
         from lib.at_client.at_utils import format_atSign
-        verb = 'update:public:%s%s %s' %(keyName, format_atSign(self.atSign), value)
-        del format_atSign
-        import time
-        time.sleep(1)
+        fullKeyName = keyName
+        if not namespace == None:
+            fullKeyName = keyName + '.' + namespace
+        verb = 'update:public:%s%s %s' %(fullKeyName, format_atSign(self.atSign), value)
+        del format_atSign, fullKeyName
+        from utime import sleep
+        sleep(1)
         print('sending verb: %s' % verb)
         response, command = self.send_verb(verb)
-        time.sleep(1)
-        del command, time
+        sleep(1)
+        del command, sleep
         response = response.replace('data:', '')
         return response
 
-    def get_public(self, keyName: str, otherAtSign:str) -> str:
+    def get_public(self, keyName: str, otherAtSign:str, namespace=None) -> str:
         """
         """
         from lib.at_client.at_utils import format_atSign
         otherAtSign = format_atSign(otherAtSign)
         del format_atSign
-        import time
+        from utime import sleep
 
         # get the public key
-        verb = 'plookup:bypassCache:true:%s%s' %(keyName, otherAtSign)
-        time.sleep(1)
+        fullKeyName = keyName
+        if not namespace == None:
+            fullKeyName = keyName + '.' + namespace
+        verb = 'plookup:bypassCache:true:%s%s' %(fullKeyName, otherAtSign)
+        del fullKeyName
+        sleep(1)
         # print('Executing verb %s' %verb)
         response, command = self.send_verb(verb)
         del command
-        time.sleep(1)
+        sleep(1)
 
         response = response.replace('data:', '')
         return response
@@ -135,11 +144,8 @@ class AtClient:
         """
         to run this function, you must have your .atKeys file in the keys/ folder and _initialize_keys() must be called first (which is already done in the constructor)
         """
-        from lib.at_client.at_utils import without_prefix
-        from lib.at_client import keys_util
-        from lib.third_party import rsa
-
         atSign = self.atSign
+        from lib.at_client.at_utils import without_prefix
         atSignWithoutPrefix = without_prefix(atSign)
 
         if verbose:
@@ -152,12 +158,16 @@ class AtClient:
             print('Challenge: %s' % challenge)
             print('Digesting...')
 
-        pemPkamPrivateKey = keys_util.get_pem_pkam_private_key_from_file(atSign) # parameters
-        rsaPkamPrivateKey = rsa.PrivateKey(pemPkamPrivateKey[0], pemPkamPrivateKey[1], pemPkamPrivateKey[2], pemPkamPrivateKey[3], pemPkamPrivateKey[4])
+        from lib.at_client.keys_util import get_pem_pkam_private_key_from_file
+        pemPkamPrivateKey = get_pem_pkam_private_key_from_file(atSign) # parameters
+        del get_pem_pkam_private_key_from_file
+
+        from lib.third_party.rsa import PrivateKey, sign
+        rsaPkamPrivateKey = PrivateKey(pemPkamPrivateKey[0], pemPkamPrivateKey[1], pemPkamPrivateKey[2], pemPkamPrivateKey[3], pemPkamPrivateKey[4])
         del pemPkamPrivateKey, atSign
 
         from lib.pem_service import b42_urlsafe_encode
-        signature = b42_urlsafe_encode(rsa.sign(challenge, rsaPkamPrivateKey, 'SHA-256'))
+        signature = b42_urlsafe_encode(sign(challenge, rsaPkamPrivateKey, 'SHA-256'))
         del b42_urlsafe_encode, challenge, rsaPkamPrivateKey
 
         if verbose:

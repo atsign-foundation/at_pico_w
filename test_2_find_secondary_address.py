@@ -11,20 +11,23 @@ def main():
     >>> Connecting to remote secondary of atSign @fascinatingsnow...
     >>> Connected to secondary of atSign @fascinatingsnow with address 6fe57327-01c1-5bbc-8a3c-3af1df169545.swarm0002.atsign.zone:5004
     """
-    from lib.at_client import io_util
-    from lib.at_client.remote_secondary import RemoteSecondary
-    from lib import wifi
 
     # get values
-    ssid, password, atSign = io_util.read_settings()
+    from lib.at_client.io_util import read_settings
+    ssid, password, atSign = read_settings()
+    del read_settings
 
     # connect to internet
     print('\nConnecting to %s (Ctrl+C to stop)...' % ssid)
-    wlan = wifi.init_wlan(ssid, password)
+    from lib.wifi import init_wlan
+    wlan = init_wlan(ssid, password)
+    del init_wlan
     print('Connected: %s' %str(not wlan == None))
 
     # initialize RemtoeSecondary object
+    from lib.at_client.remote_secondary import RemoteSecondary
     rs = RemoteSecondary(atSign,  wlan=wlan)
+    del RemoteSecondary
 
     # find secondary address
     print('Connecting to remote secondary of atSign @%s...' % atSign)
