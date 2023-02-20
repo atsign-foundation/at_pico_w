@@ -137,9 +137,7 @@ def get_pub_parameters(pkcs1):
     value = s.getvalue().split('\n')[4] # bit string encoding integers
     value = value.replace('  [UNIVERSAL] BIT STRING (value ', '')
     value = value.replace(')', '')
-    # remove spurious null byte at start of sequence from bit string
-    trunc = ubinascii.a2b_base64(value)[1:271]
-    dec.start(trunc)
+    dec.start(ubinascii.a2b_base64(value))
     ss = io.StringIO()
     prettyprint(dec, ss)
     #print(ss.getvalue())

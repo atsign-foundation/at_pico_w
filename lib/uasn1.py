@@ -411,8 +411,14 @@ class Decoder(object):
 
     def _decode_bit_string(self, bytes_data):
         """Decode a bit string"""
-        a = binascii.b2a_base64(bytes_data)
-        return a.decode().rstrip('\n')
+        if bytes_data[0] == 0x00:
+            # trivial case of no zero padding :)
+            # slice out the leading null byte
+            a = binascii.b2a_base64(bytes_data[1:len(bytes_data)])
+            return a.decode().rstrip('\n')
+        else:
+            # TODO implement what's needed to deal with zero padding
+            raise Error('ASN1 Bit String with zero padding')
 
     def _decode_null(self, bytes_data):
         """Decode a Null value."""
