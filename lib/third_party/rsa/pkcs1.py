@@ -234,8 +234,11 @@ def decrypt(crypto, priv_key):
     decrypted = priv_key.blinded_decrypt(encrypted)
     cleartext = transform.int2bytes(decrypted, blocksize)
 
+    ## The test for b'\x00\x02' was always failing :(
+    ## Seems what we actually get is b' \x02'
+    ## A space instead of a null
     # If we can't find the cleartext marker, decryption failed.
-    if cleartext[0:2] != b'\x00\x02':
+    if not ((cleartext[0:2] == b'\x00\x02') | (cleartext[0:2] == b' \x02')):
         raise DecryptionError('Decryption failed')
 
     # Find the 00 separator between the padding and the message
