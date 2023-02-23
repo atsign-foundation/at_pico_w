@@ -246,7 +246,7 @@ def decrypt(crypto, priv_key):
         sep_idx = cleartext.index(b'\x00', 2)
     except ValueError:
         raise DecryptionError('Decryption failed')
-    print(cleartext)
+
     return cleartext[sep_idx + 1:]
 
 
