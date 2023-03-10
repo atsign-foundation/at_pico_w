@@ -73,18 +73,12 @@ def main():
         sync_time()
     
     ssl_params= { 'server_hostname':atRoot }
-    print(gc.mem_free())
     atc = atClient(recipient=atRecipient, atsign=atSign, ssl_params=ssl_params)
-    print(gc.mem_free())
     atServer,atPort=atc.discover(rootserver=atRoot)
     atc.connect(atServer,atPort)
-    print(gc.mem_free())
     atc.authenticate(pkamKey)
-    print(gc.mem_free())
     atc.getsharedkey(encryptKey)
-    print(gc.mem_free())
     atc.attalk(msg=b'Hello World!')
-    print(gc.mem_free())
 
 if __name__ == '__main__':
     main()
