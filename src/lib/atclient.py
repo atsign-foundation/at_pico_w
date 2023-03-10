@@ -53,7 +53,6 @@ class atClient:
             addr = socket.getaddrinfo(rootserver, rootport)[0][-1]
             rootsock.settimeout(timeout)       # timeout for connect
             rootsock.connect(addr)
-            print(gc.mem_free())
             roottls = ssl.wrap_socket(rootsock, **self.ssl_params)
             #rootsock.do_handshake()
             mb= "{}\n".format(self.atsign).encode("utf-8")

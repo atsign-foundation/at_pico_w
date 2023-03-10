@@ -53,7 +53,6 @@ def write_keys(ssid, password, atSign):
     sys.exit()
 
 def main():
-    print(gc.mem_free())
     atRoot='root.atsign.org'
     atRecipient='cpswan'
     ssid, password, atSign, pkamKey, encryptKey = read_settings()
