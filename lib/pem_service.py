@@ -1,5 +1,4 @@
 import io
-import sys
 import ubinascii
 import uasn1
 
