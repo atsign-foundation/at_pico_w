@@ -1,2 +1,4 @@
 project.pico-go
 __pycache__
+built
+settings.json

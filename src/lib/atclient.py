@@ -1,11 +1,10 @@
 import gc
-import ujson as json
 import time
 import ubinascii
+import ucryptolib
 import usocket as socket # type: ignore
 import ussl as ssl # type: ignore
-from aes import aes_decrypt
-from pem_service import get_pem_parameters, get_pem_key, get_pub_parameters
+from pem_service import get_pub_parameters
 from third_party import rsa
 from third_party import string
 
@@ -34,54 +33,40 @@ class atException(Exception):
 
 class atClient:
 
-    def __init__(self, rootserver:str, rootport:int=64, atsign:str=None, pkam:str=None, 
-                encryptpriv:str=None, recipient:str=None, keepalive:int=0, ssl_params={}):
+    def __init__(self, atsign:str=None, recipient:str=None, ssl_params={}):
         self.sock = None
-        self.rootserver = rootserver
-        self.rootport = rootport
         self.server = None
         self.port = 0
         self.ssl_params = ssl_params
         self.pid = 0
         self.cb = None
-        if atsign is None or pkam is None:
-            raise atException("Must provide atsign name and atsign pkam key")
         self.atsign = atsign
         self.recipient = recipient
-        pkamKey = get_pem_parameters(get_pem_key(pkam))
-        self.pkamkey = rsa.PrivateKey(pkamKey[0], pkamKey[1], pkamKey[2], pkamKey[3], pkamKey[4])
-        privKey = get_pem_parameters(get_pem_key(encryptpriv))
-        self.encryptpriv = rsa.PrivateKey(privKey[0], privKey[1], privKey[2], privKey[3], privKey[4])
-        # Take advantage of the fact that the public key parameters are in the private key :)
-        self.encryptpub = rsa.PublicKey(privKey[0], privKey[1])
-        # Key wrangling creates lots of temp objects that can now be cleaned up
-        gc.collect()
         self.receivepub = None
         self.sharedkey = None
 
-    # connect or throw exception
-    def connect(self, timeout=5.0)->None:
-        log.info("Connect to atRoot server {}:{}", self.rootserver, self.rootport)
-        self.sock = None    # by definition
+    def discover(self, rootserver:str, rootport:int=64, timeout=5.0)->None:
+        log.info("Connect to atRoot server {}:{}", rootserver, rootport)
         # if caller gives me an already connected socket like object, we'll use that...
         try:
             rootsock = socket.socket()
-            addr = socket.getaddrinfo(self.rootserver, self.rootport)[0][-1]
+            addr = socket.getaddrinfo(rootserver, rootport)[0][-1]
             rootsock.settimeout(timeout)       # timeout for connect
             rootsock.connect(addr)
-            rootsock = ssl.wrap_socket(rootsock, **self.ssl_params)
+            print(gc.mem_free())
+            roottls = ssl.wrap_socket(rootsock, **self.ssl_params)
             #rootsock.do_handshake()
             mb= "{}\n".format(self.atsign).encode("utf-8")
             log.info("sending root request {}", mb)
-            rootsock.write(mb)
+            roottls.write(mb)
             #rootsock.settimeout(timeout)       # timeout for read
-            resp = rootsock.readline()
+            resp = roottls.readline()
             if resp is None or len(resp)<4:
                 raise atException("timeout")
             ret=resp.decode("utf-8")
             log.info("root response : {}", ret)
         except Exception as err:
-            log.exc(err, "during root server {}:{} cnx", self.rootserver, self.rootport)
+            log.exc(err, "during root server {}:{} cnx", rootserver, rootport)
             raise err
         # parse response to get atServer to connect to
         # response may be 'null' -> no such atsign or something like:
@@ -91,26 +76,28 @@ class atClient:
         if len(asl)<2:
             log.warning("Bad root response for {}, got {}", self.atsign, ret)
             raise atException("bad root response")
-        self.server = asl[0]
-        self.port = int(asl[1])
+        rootsock.close()
+        return(asl[0],int(asl[1]))
+
+    def connect(self, atserver, atport, timeout=5.0):
         try:
-            log.info("Connecting to atServer for {} -  {}:{}", self.atsign, self.server, self.port)
+            log.info("Connecting to atServer for {} -  {}:{}", self.atsign, atserver, atport)
             self.sock = socket.socket()
-            addr = socket.getaddrinfo(self.server, self.port)[0][-1]
+            addr = socket.getaddrinfo(atserver, atport)[0][-1]
             self.sock.settimeout(timeout)       # timeout for connect
             self.sock.connect(addr)
             self.sock = ssl.wrap_socket(self.sock, **self.ssl_params)
             #self.sock.do_handshake()
-            log.info("Connected OK to atServer {}:{}, info request...", self.server, self.port)
+            log.info("Connected OK to atServer {}:{}, info request...", atserver, atport)
             response, command = send_verb(self.sock, 'info:brief')
             log.info("atSign info response : {}", response)
         except Exception as err:
-            log.exc(err, "During atSign server {}:{} cnx", self.server, self.port)
+            log.exc(err, "During atSign server {}:{} cnx", atserver, atport)
             self.sock.close()
             self.sock = None
             raise err
 
-    def authenticate(self):
+    def authenticate(self, pkamKey):
         try:
             log.info("Doing PKAM authentication to {}", self.atsign)
             response, command = send_verb(self.sock, 'from:' + self.atsign)
@@ -118,7 +105,8 @@ class atClient:
                 raise ATException("timeout")
             challenge = response.replace('@data:', '')
             log.info("atsign pkam challenge : {}", challenge)
-            signature = b42_urlsafe_encode(rsa.sign(challenge, self.pkamkey, 'SHA-256'))
+            pkamrsa=rsa.PrivateKey(pkamKey[0], pkamKey[1], pkamKey[2], pkamKey[3], pkamKey[4])
+            signature = b42_urlsafe_encode(rsa.sign(challenge, pkamrsa, 'SHA-256'))
             # Key manipulation creates a lot of garbage, so let's clear that up now the signature is ready
             gc.collect()
             log.info("atsign pkam signature : {}", signature)
@@ -130,7 +118,7 @@ class atClient:
             self.sock = None
             raise err
 
-    def getsharedkey(self):
+    def getsharedkey(self, privKey):
         try:
             log.info("Fetching sharedAESKey for {}", self.recipient)
             response, command = send_verb(self.sock, 'llookup:shared_key.' + self.recipient +'@' + self.atsign)
@@ -142,9 +130,11 @@ class atClient:
                 log.info("Truncated response is: {}", response)
             # does my atSign already have the recipient's shared key?
             if response.startswith('data:'):
-                shared_key = rsa.decrypt(ubinascii.a2b_base64(response.replace('data:','')), self.encryptpriv)
+                privrsa=rsa.PrivateKey(privKey[0], privKey[1], privKey[2], privKey[3], privKey[4])
+                shared_key = rsa.decrypt(ubinascii.a2b_base64(response.replace('data:','')), privrsa)
                 self.sharedkey=ubinascii.a2b_base64(shared_key)
                 log.info("Got shared key from atServer: {}", shared_key)
+                gc.collect()
             # or do I need to create, store and share a new shared key?
             elif response.startswith('error:AT0015-key not found'):
                 log.info("No local copy of the key, so we need to make one")
@@ -152,8 +142,10 @@ class atClient:
                 self.sharedkey=ucrypto.getrandbits(256)
                 shared_key = ubinascii.b2a_base64(self.sharedkey).rstrip()
                 log.info("Generated shared key {}", shared_key)
+                # Take advantage of the fact that the public key parameters are in the private key :)
+                encryptpub = rsa.PublicKey(self.encryptpriv[0], self.encryptpriv[1])
                 # Encrypt the shared_key with our RSA public key
-                encrypted_shared_key = ubinascii.b2a_base64(rsa.encrypt(shared_key, self.encryptpub)).rstrip().decode()
+                encrypted_shared_key = ubinascii.b2a_base64(rsa.encrypt(shared_key, encryptpub)).rstrip().decode()
                 log.info("Encrypted shared key {}", encrypted_shared_key)
                 # Store the shared key
                 response, command = send_verb(self.sock, 'update:shared_key.' + self.recipient +'@' + self.atsign + ' ' + encrypted_shared_key)
@@ -187,10 +179,10 @@ class atClient:
             log.info("publish message to astign: {}",msg)
             #TODO ivs should not be zeroes, and should be shared in metadata
             iv = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-            #aes = ucryptolib.aes(self.sharedkey, 6, iv)
-            #b64encrypted_msg = ubinascii.b2a_base64(aes.encrypt(msg)).rstrip().decode()
-            encrypted_msg = ucrypto.AES(self.sharedkey, mode=ucrypto.AES.MODE_CTR, counter=iv).encrypt(pkcs7pad(msg))
-            b64encrypted_msg = ubinascii.b2a_base64(encrypted_msg).rstrip().decode()
+            aes = ucryptolib.aes(self.sharedkey, 6, iv)
+            b64encrypted_msg = ubinascii.b2a_base64(aes.encrypt(pkcs7pad(msg))).rstrip().decode()
+            #encrypted_msg = ucrypto.AES(self.sharedkey, mode=ucrypto.AES.MODE_CTR, counter=iv).encrypt(pkcs7pad(msg))
+            #b64encrypted_msg = ubinascii.b2a_base64(encrypted_msg).rstrip().decode()
             shared_key = ubinascii.b2a_base64(self.sharedkey).rstrip().decode()
             response, command = send_verb(self.sock,
                 'notify:update:ttr:-1:@'+self.recipient+':message.infrafon@'+self.atsign+':'+b64encrypted_msg)
