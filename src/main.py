@@ -2,17 +2,22 @@ import sys
 # Needed when running on Linux to find imports in lib directory
 if sys.platform == 'linux':
     sys.path.append('./lib')
-import gc
 import ujson as json
 import os
 import time
 from atclient import atClient
 
 import logging
-logging.basicConfig(level = logging.INFO)
-log=logging.getLogger(__name__)
 
 def read_settings():
+    """Read settings from settings.json file
+    
+    ssid: The SSID of the WiFi network to be connected to
+    password: The password of the WiFi network to be connect to
+    atSign: The atSign being used to send
+    pkamKey: The atSign's PKAM authentication key (as integers)
+    encryptKey: The atSign's encryption key (as integers)
+    """
     with open(os.getcwd() + '/settings.json') as f:
         settings = json.loads(f.read())
         return (settings['ssid'], settings['password'],
@@ -20,6 +25,10 @@ def read_settings():
             settings['encryptKey'])
 
 def read_keys(atSign):
+    """Reads keys from the atKeys file
+
+    Reads keys associated with the atSign found in the settings.json
+    """
     cwd = os.getcwd()
     if cwd=="/":
         # Looks like we're running on a devboard with our code in /
@@ -35,6 +44,7 @@ def read_keys(atSign):
             info['selfEncryptionKey'])
 
 def write_keys(ssid, password, atSign):
+    """Write extracted keys into settings.json"""
     log.info("Writing keys")
     from aes import aes_decrypt
     from pem_service import get_pem_parameters, get_pem_key
@@ -53,7 +63,8 @@ def write_keys(ssid, password, atSign):
     sys.exit()
 
 def main():
-    atRoot='root.atsign.org'
+    #logging.basicConfig(level = logging.INFO)
+    log=logging.getLogger(__name__)
     atRecipient='cpswan'
     ssid, password, atSign, pkamKey, encryptKey = read_settings()
     if pkamKey==[]:
@@ -70,14 +81,33 @@ def main():
             log.info("Wi-Fi .. Connecting")
         log.info("Wi-Fi Connected")
         sync_time()
-    
-    ssl_params= { 'server_hostname':atRoot }
-    atc = atClient(recipient=atRecipient, atsign=atSign, ssl_params=ssl_params)
-    atServer,atPort=atc.discover(rootserver=atRoot)
-    atc.connect(atServer,atPort)
-    atc.authenticate(pkamKey)
-    atc.getsharedkey(encryptKey)
-    atc.attalk(msg=b'Hello World!')
+
+    while True:
+        print("Welcome! What would you like to do?\n"
+            "\t1) Set recipient atSign (presently " + atRecipient + ")\n"
+            "\t2) Connect to " + atSign + "\n"
+            "\t3) Send at atTalk message to " + atRecipient + "\n"
+            "\t4) Exit")
+        opt=input("> ")
+        if int(opt) == 1:
+            atRecipient=input("atSign:")
+        elif int(opt) == 2:
+            atc = atClient(atsign=atSign, recipient=atRecipient)
+            atServer,atPort=atc.discover()
+            atc.connect(atServer,atPort)
+            atc.authenticate(pkamKey)
+            atc.getsharedkey(encryptKey)
+        elif int(opt) == 3:
+            print('To return to menu type: /exit')
+            while True:
+                msg=input(atSign+":").encode()
+                if msg == b'/exit':
+                    break
+                atc.attalk(msg=msg)
+        elif int(opt) == 4:
+            sys.exit(0)
+        else:
+            print('Invalid option. Please enter a number in the range [1-4]')
 
 if __name__ == '__main__':
     main()
