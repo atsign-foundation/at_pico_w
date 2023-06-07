@@ -8,6 +8,7 @@ import time
 from atclient import atClient
 
 import logging
+log=logging.getLogger(__name__)
 
 def read_settings():
     """Read settings from settings.json file
@@ -64,7 +65,6 @@ def write_keys(ssid, password, atSign):
 
 def main():
     #logging.basicConfig(level = logging.INFO)
-    log=logging.getLogger(__name__)
     atRecipient='cpswan'
     ssid, password, atSign, pkamKey, encryptKey = read_settings()
     if pkamKey==[]:

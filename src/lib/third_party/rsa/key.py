@@ -35,6 +35,7 @@ of pyasn1.
 
 from third_party import logging
 from third_party import warnings
+from third_party import rsa
 
 from third_party.rsa._compat import range
 import third_party.rsa.prime
@@ -160,7 +161,7 @@ class AbstractKey(object):
 
         See https://en.wikipedia.org/wiki/Blinding_%28cryptography%29
         """
-        return (message * third_party.rsa.core.fast_pow(r, self.e, self.n)) % self.n
+        return (message * rsa.core.fast_pow(r, self.e, self.n)) % self.n
 
     def unblind(self, blinded, r):
         """Performs blinding on the message using random number 'r'.
@@ -174,7 +175,7 @@ class AbstractKey(object):
         See https://en.wikipedia.org/wiki/Blinding_%28cryptography%29
         """
 
-        return (third_party.rsa.common.inverse(r, self.n) * blinded) % self.n
+        return (rsa.common.inverse(r, self.n) * blinded) % self.n
 
 
 class PublicKey(AbstractKey):
@@ -254,7 +255,7 @@ class PublicKey(AbstractKey):
         """
 
         from pyasn1.codec.der import decoder
-        from third_party.rsa.asn1 import AsnPubKey
+        from rsa.asn1 import AsnPubKey
 
         (priv, _) = decoder.decode(keyfile, asn1Spec=AsnPubKey())
         return cls(n=int(priv['modulus']), e=int(priv['publicExponent']))
@@ -267,7 +268,7 @@ class PublicKey(AbstractKey):
         """
 
         from pyasn1.codec.der import encoder
-        from third_party.rsa.asn1 import AsnPubKey
+        from rsa.asn1 import AsnPubKey
 
         # Create the ASN object
         asn_key = AsnPubKey()
@@ -288,7 +289,7 @@ class PublicKey(AbstractKey):
         :return: a PublicKey object
         """
 
-        der = third_party.rsa.pem.load_pem(keyfile, 'RSA PUBLIC KEY')
+        der = rsa.pem.load_pem(keyfile, 'RSA PUBLIC KEY')
         return cls._load_pkcs1_der(der)
 
     def _save_pkcs1_pem(self):
@@ -299,7 +300,7 @@ class PublicKey(AbstractKey):
         """
 
         der = self._save_pkcs1_der()
-        return third_party.rsa.pem.save_pem(der, 'RSA PUBLIC KEY')
+        return rsa.pem.save_pem(der, 'RSA PUBLIC KEY')
 
     @classmethod
     def load_pkcs1_openssl_pem(cls, keyfile):
@@ -317,7 +318,7 @@ class PublicKey(AbstractKey):
         :return: a PublicKey object
         """
 
-        der = third_party.rsa.pem.load_pem(keyfile, 'PUBLIC KEY')
+        der = rsa.pem.load_pem(keyfile, 'PUBLIC KEY')
         return cls.load_pkcs1_openssl_der(der)
 
     @classmethod
@@ -331,7 +332,7 @@ class PublicKey(AbstractKey):
 
         """
 
-        from third_party.rsa.asn1 import OpenSSLPubKey
+        from rsa.asn1 import OpenSSLPubKey
         from pyasn1.codec.der import decoder
         from pyasn1.type import univ
 
@@ -378,7 +379,7 @@ class PrivateKey(AbstractKey):
         # Calculate exponents and coefficient.
         self.exp1 = int(d % (p - 1))
         self.exp2 = int(d % (q - 1))
-        self.coef = third_party.rsa.common.inverse(q, p)
+        self.coef = rsa.common.inverse(q, p)
 
     def __getitem__(self, key):
         return getattr(self, key)
@@ -426,9 +427,9 @@ class PrivateKey(AbstractKey):
         :rtype: int
         """
 
-        blind_r = third_party.rsa.randnum.randint(self.n - 1)
+        blind_r = rsa.randnum.randint(self.n - 1)
         blinded = self.blind(encrypted, blind_r)  # blind before decrypting
-        decrypted = third_party.rsa.core.decrypt_int(blinded, self.d, self.n)
+        decrypted = rsa.core.decrypt_int(blinded, self.d, self.n)
 
         return self.unblind(decrypted, blind_r)
 
@@ -442,9 +443,9 @@ class PrivateKey(AbstractKey):
         :rtype: int
         """
 
-        blind_r = third_party.rsa.randnum.randint(self.n - 1)
+        blind_r = rsa.randnum.randint(self.n - 1)
         blinded = self.blind(message, blind_r)  # blind before encrypting
-        encrypted = third_party.rsa.core.encrypt_int(blinded, self.d, self.n)
+        encrypted = rsa.core.encrypt_int(blinded, self.d, self.n)
         return self.unblind(encrypted, blind_r)
 
     @classmethod
@@ -555,7 +556,7 @@ class PrivateKey(AbstractKey):
         :return: a PrivateKey object
         """
 
-        der = third_party.rsa.pem.load_pem(keyfile, b'RSA PRIVATE KEY')
+        der = rsa.pem.load_pem(keyfile, b'RSA PRIVATE KEY')
         return cls._load_pkcs1_der(der)
 
     def _save_pkcs1_pem(self):
@@ -566,10 +567,10 @@ class PrivateKey(AbstractKey):
         """
 
         der = self._save_pkcs1_der()
-        return third_party.rsa.pem.save_pem(der, b'RSA PRIVATE KEY')
+        return rsa.pem.save_pem(der, b'RSA PRIVATE KEY')
 
 
-def find_p_q(nbits, getprime_func=third_party.rsa.prime.getprime, accurate=True):
+def find_p_q(nbits, getprime_func=rsa.prime.getprime, accurate=True):
     """Returns a tuple of two different primes of nbits bits each.
 
     The resulting p * q has exacty 2 * nbits bits, and the returned p and q
@@ -628,7 +629,7 @@ def find_p_q(nbits, getprime_func=third_party.rsa.prime.getprime, accurate=True)
             return True
 
         # Make sure we have just the right amount of bits
-        found_size = third_party.rsa.common.bit_size(p * q)
+        found_size = rsa.common.bit_size(p * q)
         return total_bits == found_size
 
     # Keep choosing other primes until they match our requirements.
@@ -663,9 +664,9 @@ def calculate_keys_custom_exponent(p, q, exponent):
     phi_n = (p - 1) * (q - 1)
 
     try:
-        d = third_party.rsa.common.inverse(exponent, phi_n)
-    except third_party.rsa.common.NotRelativePrimeError as ex:
-        raise third_party.rsa.common.NotRelativePrimeError(
+        d = rsa.common.inverse(exponent, phi_n)
+    except rsa.common.NotRelativePrimeError as ex:
+        raise rsa.common.NotRelativePrimeError(
             exponent, phi_n, ex.d,
             msg="e (%d) and phi_n (%d) are not relatively prime (divider=%i)" %
                 (exponent, phi_n, ex.d))
@@ -757,7 +758,7 @@ def newkeys(nbits, accurate=True, poolsize=1, exponent=DEFAULT_EXPONENT):
 
         getprime_func = functools.partial(parallel.getprime, poolsize=poolsize)
     else:
-        getprime_func = third_party.rsa.prime.getprime
+        getprime_func = rsa.prime.getprime
 
     # Generate the key components
     (p, q, e, d) = gen_keys(nbits, getprime_func, accurate=accurate, exponent=exponent)
