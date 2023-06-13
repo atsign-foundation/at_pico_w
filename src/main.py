@@ -5,10 +5,13 @@ if sys.platform == 'linux':
 import ujson as json
 import os
 import time
-from atclient import atClient
+from atclient import *
 
 import logging
 log=logging.getLogger(__name__)
+import _thread
+
+loading = False
 
 def read_settings():
     """Read settings from settings.json file
@@ -22,8 +25,9 @@ def read_settings():
     with open(os.getcwd() + '/settings.json') as f:
         settings = json.loads(f.read())
         return (settings['ssid'], settings['password'],
-            settings['atSign'].replace('@', ''), settings['pkamKey'],
-            settings['encryptKey'])
+            settings['atSign'].replace('@', ''), 
+            settings['recipientAtSign'].replace('@', ''), 
+            settings['pkamKey'], settings['encryptKey'])
 
 def read_keys(atSign):
     """Reads keys from the atKeys file
@@ -64,9 +68,10 @@ def write_keys(ssid, password, atSign):
     sys.exit()
 
 def main():
-    #logging.basicConfig(level = logging.INFO)
-    atRecipient='cpswan'
-    ssid, password, atSign, pkamKey, encryptKey = read_settings()
+    # logging.basicConfig(level = logging.INFO)
+    ssid, password, atSign, atRecipient, pkamKey, encryptKey = read_settings()
+    if atRecipient == '':
+        atRecipient='NOT SET'
     if pkamKey==[]:
         # Transfer keys from atKeys file to settings
         write_keys(ssid,password,atSign)
@@ -82,28 +87,53 @@ def main():
         log.info("Wi-Fi Connected")
         sync_time()
 
+    connected = False
+
     while True:
+        global lock
         print("Welcome! What would you like to do?\n"
-            "\t1) Set recipient atSign (presently " + atRecipient + ")\n"
+            "\t1) Change recipient atSign (presently " + atRecipient + ")\n"
             "\t2) Connect to " + atSign + "\n"
             "\t3) Send at atTalk message to " + atRecipient + "\n"
             "\t4) Exit")
         opt=input("> ")
         if int(opt) == 1:
             atRecipient=input("atSign:")
+            connected = False
         elif int(opt) == 2:
-            atc = atClient(atsign=atSign, recipient=atRecipient)
-            atServer,atPort=atc.discover()
-            atc.connect(atServer,atPort)
-            atc.authenticate(pkamKey)
-            atc.getsharedkey(encryptKey)
+            if atRecipient != '' and atRecipient != 'NOT SET':
+                print('Connecting to ' + atSign + "...")
+                atc = atClient(atsign=atSign, recipient=atRecipient)
+                atServer,atPort=atc.discover()
+                atc.connect(atServer,atPort)
+                atc.authenticate(pkamKey)
+                atc.getsharedkey(encryptKey)
+                atc.getrecipientsharedkey(encryptKey)
+                connected = True
+                print("Connected")
+            else:
+                print("You must set recipient atSign before continuing")
         elif int(opt) == 3:
-            print('To return to menu type: /exit')
-            while True:
-                msg=input(atSign+":").encode()
-                if msg == b'/exit':
-                    break
-                atc.attalk(msg=msg)
+            if connected:
+                # init second thread to read from socket (monitor)
+                global monitoring
+                monitoring = True
+                read_thread = _thread.start_new_thread(atc.attalk_recv, ())
+                print('To return to menu type: /exit\n')
+                while True:
+                    # print(atSign+":",end='\r')
+                    # print(">",end='\r')
+                    msg=input("").encode()
+                    if msg == b'/exit':
+                        break
+                    atc.attalk_send(msg=msg)
+                # stop second thread
+                lock.acquire(1)
+                monitoring = False
+                lock.release()
+                # join method does not exist in _thread
+            else:
+                print("You must connect to " + atSign + " before continuing")
         elif int(opt) == 4:
             sys.exit(0)
         else:

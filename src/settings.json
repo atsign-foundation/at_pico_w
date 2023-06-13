@@ -2,6 +2,7 @@
 	"ssid": "",
 	"password": "",
 	"atSign": "",
-	"privateKey": [],
-    "encryptKey": []
+	"recipientAtSign": "",
+	"pkamKey": [],
+	"encryptKey": []
 }

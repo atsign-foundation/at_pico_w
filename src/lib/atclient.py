@@ -4,12 +4,19 @@ import ubinascii
 import ucryptolib
 import usocket as socket # type: ignore
 import ussl as ssl # type: ignore
+import ujson as json
 from pem_service import get_pub_parameters
 from third_party import rsa
 from third_party import string
+from iv_nonce import IVNonce
 
 import logging
 log=logging.getLogger(__name__)
+
+import _thread
+lock = _thread.allocate_lock()
+monitoring = True
+notifications = []
 
 def b42_urlsafe_encode(payload):
     """URL safe Base64 encoding
@@ -24,6 +31,19 @@ def pkcs7pad(text):
     """
     return text+chr(16-len(text)%16)*(16-len(text)%16)
 
+def unpad(ciphertext):
+    """Unpads ciphertext received
+        ciphertext (byte string):
+        A piece of data with padding that needs to be stripped.
+    """
+    # return ciphertext[:-ord(ciphertext[-1])]
+    pdata_len = len(ciphertext)
+    padding_len = ord(ciphertext[-1])
+    return ciphertext[:-padding_len]
+
+def remove_trailing(msg_b):
+    return msg_b.rstrip(b"\x0a").rstrip(b"\x0b").rstrip(b"\x0c").rstrip(b"\x0d").rstrip(b"\x0e").rstrip(b"\x0f")
+
 def send_verb(skt, verb):
     """Send an atProtocol verb
     """
@@ -34,7 +54,6 @@ def send_verb(skt, verb):
     response += data
     parts = response.decode().split('\n') 
     return parts[0], parts[1]
-
 
 class atException(Exception):
     pass
@@ -52,6 +71,7 @@ class atClient:
         self.recipient = recipient
         self.receivepub = None
         self.sharedkey = b''
+        self.sharedkeyrecp = b''
 
     def discover(self, rootserver:str="root.atsign.org",
         rootport:int=64, timeout=5.0):
@@ -81,7 +101,7 @@ class atClient:
         try:
             rootsock = socket.socket()
             rootaddr = socket.getaddrinfo(rootserver, rootport)[0][-1]
-            rootsock.settimeout(timeout)       # timeout for connect
+            rootsock.settimeout(None)       # timeout for connect
             rootsock.connect(rootaddr)
             roottls = ssl.wrap_socket(rootsock)
             #rootsock.do_handshake()
@@ -126,7 +146,7 @@ class atClient:
             self.port=atport
             self.sock = socket.socket()
             addr = socket.getaddrinfo(atserver, atport)[0][-1]
-            self.sock.settimeout(timeout)       # timeout for connect
+            self.sock.settimeout(None)       # timeout for connect
             self.sock.connect(addr)
             self.sock = ssl.wrap_socket(self.sock)
             log.info("Connected OK to atServer {}:{}, info request...", atserver, atport)
@@ -232,7 +252,48 @@ class atClient:
             self.sock = None
             raise err
 
-    def attalk(self, msg:bytes, topic:str="attalk", namespace:str="ai6bh"):
+    def getrecipientsharedkey(self, privKey):
+        """Get the AES shared key to decrypt messages from a recipient atSign
+
+        Parameters
+        ----------
+        privKey : list
+        The integers for an RSA private key extracted from a .pem encoded key
+        """
+        try:
+            log.info("Fetching sharedAESKey by {}", self.recipient)
+            response, command = send_verb(self.sock, 'llookup:cached:@' + self.atsign +':shared_key@' + self.recipient)
+            log.info("Got this response for llookup: {}", response)
+            if response is None or len(response)<4:
+                raise ATException("Short response")
+            if response.startswith('@' + self.atsign + '@'):
+                response=response.replace('@' + self.atsign + '@','')
+                log.info("Truncated response is: {}", response)
+            # does my atSign already have the recipient's shared key?
+            if response.startswith('data:'):
+                privrsa=rsa.PrivateKey(privKey[0], privKey[1], privKey[2], privKey[3], privKey[4])
+                shared_key = rsa.decrypt(ubinascii.a2b_base64(response.replace('data:','')), privrsa)
+                self.sharedkeyrecp=ubinascii.a2b_base64(shared_key)
+                log.info("Got shared key from atServer: {}", shared_key)
+                gc.collect()
+            # or do I need to wait until the other atSign sends the key?
+            elif response.startswith('error:AT0015-key not found'):
+                #TODO: wait until key is generated and sent by recipient atSign
+                # it will be necessary to come back when the first message is received (use a flag)
+                pass
+            else:
+                # Something has gone wrong and we don't have a shared key to work with
+                log.warning("No shared key found or created during atsign server {}:{} cnx", self.server, self.port)
+                self.sock.close()
+                self.sock = None
+                raise Exception("Shared key not found or created")
+        except Exception as err:
+            log.exc(err, "during atsign server {}:{} cnx", self.server, self.port)
+            self.sock.close()
+            self.sock = None
+            raise err
+
+    def attalk_send(self, msg:bytes, topic:str="attalk", namespace:str="ai6bh"):
         """Send a notification to an atTalk client
         
         Parameters
@@ -245,15 +306,58 @@ class atClient:
         The namespace being used by the atTalk client (default 'atpicow')
         """
         try:
-            log.info("publish message to astign: {}",msg)
-            #TODO ivs should not be zeroes, and should be shared in metadata
-            iv = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+            log.info("publish message to atsign: {}",msg)
+            # Generate random secure iv
+            iv_builder = IVNonce(16)
+            iv = iv_builder.token_bytes()
             aes = ucryptolib.aes(self.sharedkey, 6, iv)
             b64encrypted_msg = ubinascii.b2a_base64(aes.encrypt(pkcs7pad(msg))).rstrip().decode()
             response, command = send_verb(self.sock,
-                'notify:update:ttr:-1:@'+self.recipient+':'+topic+'.'+
+                'notify:update:ttr:-1:ivNonce:' + ubinascii.b2a_base64(iv).rstrip().decode() + ':@'+self.recipient+':'+topic+'.'+
                 namespace+'@'+self.atsign+':'+b64encrypted_msg)
             log.info("Got this response for publishing: {}", response)
         except Exception as err:
             log.exc(err, "during info publish to atsign server {}:{} cnx", self.server, self.port)
-            self.disconnect()
+            self.sock.close()
+
+    def attalk_recv(self, topic:str="attalk", namespace:str="ai6bh"):
+        """Receive a notification from an atTalk client
+        
+        Parameters
+        ----------
+        topic : str, optional
+        The topic key being used by the atTalk client (default 'attalk')
+        namespace : str, optional
+        The namespace being used by the atTalk client (default 'atpicow')
+        """
+        try:
+            global lock
+            global monitoring
+            global notifications
+            # send monitor verb to listen for notifications
+            self.sock.write(('monitor' + "\r\n").encode())
+            while True:
+                lock.acquire(1)
+                if monitoring is False:
+                    lock.release()
+                    break
+                lock.release()
+                notification = b'' + self.sock.readline()
+                notification = notification.decode()
+                if notification.startswith('@' + self.atsign + '@'):
+                    notification=notification.replace('@' + self.atsign + '@','')
+                # Filter other messages
+                if notification.startswith('notification: '):
+                    notification = notification.replace('notification: ', '').rstrip()
+                    notifications.append(json.loads(notification))
+                    if notifications[-1]['id'] != '-1':
+                        last_notf = notifications[-1]
+                        # take ivNonce from metadata and decrypt value
+                        iv = ubinascii.a2b_base64(last_notf['metadata']['ivNonce'])
+                        aes = ucryptolib.aes(self.sharedkeyrecp, 6, iv)
+                        decrypted_msg_b = aes.decrypt(ubinascii.a2b_base64(notifications[-1]['value'].encode()))
+                        decrypted_msg = remove_trailing(decrypted_msg_b).decode('utf-8').rstrip("\v")
+                        print(notifications[-1]['from'] + ': ' + decrypted_msg)
+        except Exception as err:
+            log.exc(err, "during info publish to atsign server {}:{} cnx", self.server, self.port)
+            self.sock.close()
