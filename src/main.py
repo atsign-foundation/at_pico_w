@@ -48,7 +48,7 @@ def read_keys(atSign):
             info['aesPkamPrivateKey'], info['aesPkamPublicKey'],
             info['selfEncryptionKey'])
 
-def write_keys(ssid, password, atSign):
+def write_keys(ssid, password, atSign, atRecipient):
     """Write extracted keys into settings.json"""
     log.info("Writing keys")
     from aes import aes_decrypt
@@ -61,6 +61,7 @@ def write_keys(ssid, password, atSign):
     encryptKey = get_pem_parameters(get_pem_key(encryptPrivateKey))
     with open(os.getcwd() + '/settings.json', 'w') as w:
         w.write("{\n\t\"ssid\": \"" + ssid + "\",\n\t\"password\": \"" + password + "\",\n\t\"atSign\": \"" + atSign +
+            "\",\n\t\"recipientAtSign\": \"" + atRecipient +
             "\",\n\t\"pkamKey\": [\n\t\t\t\t\t" + str(pkamKey[0]) + ",\n\t\t\t\t\t" + str(pkamKey[1]) + ",\n\t\t\t\t\t" + str(pkamKey[2]) +
             ",\n\t\t\t\t\t" + str(pkamKey[3]) + ",\n\t\t\t\t\t" + str(pkamKey[4]) + "\n\t\t\t\t  ],\n" +
             "\t\"encryptKey\": [\n\t\t\t\t\t" + str(encryptKey[0]) + ",\n\t\t\t\t\t" + str(encryptKey[1]) + ",\n\t\t\t\t\t" + str(encryptKey[2]) +
@@ -74,7 +75,7 @@ def main():
         atRecipient='NOT SET'
     if pkamKey==[]:
         # Transfer keys from atKeys file to settings
-        write_keys(ssid,password,atSign)
+        write_keys(ssid,password,atSign,atRecipient)
     if sys.platform != 'linux':
         import network # type: ignore
         from ntp_client import sync_time

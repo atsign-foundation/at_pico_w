@@ -31,18 +31,14 @@ def pkcs7pad(text):
     """
     return text+chr(16-len(text)%16)*(16-len(text)%16)
 
-def unpad(ciphertext):
+def unpad(ciphertext: bytes):
     """Unpads ciphertext received
         ciphertext (byte string):
         A piece of data with padding that needs to be stripped.
     """
-    # return ciphertext[:-ord(ciphertext[-1])]
     pdata_len = len(ciphertext)
-    padding_len = ord(ciphertext[-1])
+    padding_len = ciphertext[-1]
     return ciphertext[:-padding_len]
-
-def remove_trailing(msg_b):
-    return msg_b.rstrip(b"\x0a").rstrip(b"\x0b").rstrip(b"\x0c").rstrip(b"\x0d").rstrip(b"\x0e").rstrip(b"\x0f")
 
 def send_verb(skt, verb):
     """Send an atProtocol verb
@@ -356,7 +352,7 @@ class atClient:
                         iv = ubinascii.a2b_base64(last_notf['metadata']['ivNonce'])
                         aes = ucryptolib.aes(self.sharedkeyrecp, 6, iv)
                         decrypted_msg_b = aes.decrypt(ubinascii.a2b_base64(notifications[-1]['value'].encode()))
-                        decrypted_msg = remove_trailing(decrypted_msg_b).decode('utf-8').rstrip("\v")
+                        decrypted_msg = unpad(decrypted_msg_b).decode('utf-8').rstrip("\v")
                         print(notifications[-1]['from'] + ': ' + decrypted_msg)
         except Exception as err:
             log.exc(err, "during info publish to atsign server {}:{} cnx", self.server, self.port)
