@@ -1,8 +1,7 @@
-import network # type: ignore
+import machine
+import struct
 import time
 import usocket as socket # type: ignore
-import struct
-import machine
 
 # Substract 1 hour, so we get + 1 hour
 TIMESTAMP_DELTA = 2208988800 - 3600*1 # epoch time - 1 hour
@@ -42,11 +41,3 @@ def format_time_id():
 def get_week_day(day):
     d = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     return d[day]
-
-    
-    
-    
-    
-    
-    
-    

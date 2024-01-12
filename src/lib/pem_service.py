@@ -74,7 +74,7 @@ def prettyprint(input_data, output, indent=0):
             tag, value = input_data.read()
             output.write(' ' * indent)
             output.write('[%s] %s (value %s)' %
-                         (strclass(tag[2]), strid(tag[0]), repr(value)))
+                        (strclass(tag[2]), strid(tag[0]), repr(value)))
             output.write('\n')
         elif tag[1] == uasn1.TypeConstructed:
             output.write(' ' * indent)

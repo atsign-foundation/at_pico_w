@@ -43,9 +43,9 @@ class Logger:
         self.name = name
 
     def _level_str(self, level):
-        l = _level_dict.get(level)
-        if l is not None:
-            return l
+        levelfromdict = _level_dict.get(level)
+        if levelfromdict is not None:
+            return levelfromdict
         return "LVL%s" % level
 
     def setLevel(self, level):
@@ -65,7 +65,7 @@ class Logger:
                         msg = msg % args
                     else:
                         msg = msg.format(*args)
-                except:
+                except Exception:
                     msg = msg + '--BAD LOG FORMAT--'
             if self.handlers:
                 d = self.record.__dict__
@@ -115,9 +115,9 @@ _loggers = {}
 def getLogger(name="root"):
     if name in _loggers:
         return _loggers[name]
-    l = Logger(name)
-    _loggers[name] = l
-    return l
+    loggername = Logger(name)
+    _loggers[name] = loggername
+    return loggername
 
 def exc(e, msg, *args):
     getLogger().exc(e, msg, *args)
