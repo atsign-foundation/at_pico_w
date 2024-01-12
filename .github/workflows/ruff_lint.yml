@@ -24,3 +24,8 @@ jobs:
         uses: chartboost/ruff-action@e18ae971ccee1b2d7bbef113930f00c670b78da4 # v1.0.0
         with:
           src: "./src/lib/*.py"
+      - name: List directory contents
+        run: |
+          ls
+          ls src
+          ls src/lib
