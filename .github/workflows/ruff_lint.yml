@@ -1,0 +1,34 @@
+name: RuffLint
+# Runs the workflow on the below events:
+# 1. on pull request raised to trunk branch.
+# 2. on push event to trunk branch.
+on:
+  push:
+    branches:
+      - trunk
+  pull_request:
+    branches:
+      - trunk
+
+permissions:  # added using https://github.com/step-security/secure-workflows
+  contents: read
+
+jobs:
+  lint-markdown:
+    runs-on: ubuntu-latest
+    name: Lint MicroPython
+    steps:
+      - name: checkout repo content
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Install and run Ruff linter
+        uses: chartboost/ruff-action@e18ae971ccee1b2d7bbef113930f00c670b78da4 # v1.0.0
+        with:
+          src: |
+            'src/main.py'
+            'src/lib/aes.py'
+            'src/lib/atclient.py'
+            'src/lib/iv_nonce.py'
+            'src/lib/logging.py'
+            'src/lib/ntp_client.py'
+            'src/lib/pem_service.py'
+            'src/lib/uasn1.py'

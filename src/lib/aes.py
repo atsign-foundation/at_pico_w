@@ -1,6 +1,5 @@
-import ucryptolib
-import os
 import binascii
+import ucryptolib
 
 def aes_decrypt(encryptedText, selfEncryptionKey):
     ciphertext = binascii.a2b_base64(encryptedText)
@@ -14,5 +13,3 @@ def hex_str_to_bytes(hex_str):
     parts = hex_str.split(' ')
     together = "".join(parts)
     return bytes.fromhex(together)
-    
-    

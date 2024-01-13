@@ -6,6 +6,9 @@
 # uASN1 is copyright (c) 2007-2021 by the uASN1 authors. See the
 # file "AUTHORS" for a complete overview.
 
+import ubinascii as binascii
+import re
+
 Boolean = 0x01
 Integer = 0x02
 BitString = 0x03
@@ -23,9 +26,6 @@ ClassUniversal = 0x00
 ClassApplication = 0x40
 ClassContext = 0x80
 ClassPrivate = 0xc0
-
-import re
-import binascii
 
 class Error(Exception):
     """ASN1 error"""

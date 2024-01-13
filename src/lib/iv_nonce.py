@@ -24,7 +24,7 @@ class IVNonce:
     
     def token_hex(self):
         # check upython compat for decode
-        return binascii.hexlify(token_bytes()).decode('ascii') 
+        return ubinascii.hexlify(self.randbytes).decode('ascii') 
 
     def __init__(self, n:int=16):
         self.n = n

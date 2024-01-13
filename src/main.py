@@ -1,15 +1,16 @@
+#import _thread
 import sys
 # Needed when running on Linux to find imports in lib directory
 if sys.platform == 'linux':
     sys.path.append('./lib')
-import ujson as json
-import os
-import time
-from atclient import *
-
+import atclient
 import logging
+import os
+import sys
+import time
+import ujson as json
+
 log=logging.getLogger(__name__)
-import _thread
 
 loading = False
 
@@ -104,7 +105,7 @@ def main():
         elif int(opt) == 2:
             if atRecipient != '' and atRecipient != 'NOT SET':
                 print('Connecting to ' + atSign + "...")
-                atc = atClient(atsign=atSign, recipient=atRecipient)
+                atc = atclient.atClient(atsign=atSign, recipient=atRecipient)
                 atServer,atPort=atc.discover()
                 atc.connect(atServer,atPort)
                 atc.authenticate(pkamKey)
@@ -119,7 +120,7 @@ def main():
                 # init second thread to read from socket (monitor)
                 global monitoring
                 monitoring = True
-                read_thread = _thread.start_new_thread(atc.attalk_recv, ())
+                #read_thread = _thread.start_new_thread(atc.attalk_recv, ())
                 print('To return to menu type: /exit\n')
                 while True:
                     # print(atSign+":",end='\r')

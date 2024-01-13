@@ -1,4 +1,6 @@
+import _thread
 import gc
+import logging
 import time
 import ubinascii
 import ucryptolib
@@ -10,10 +12,8 @@ from third_party import rsa
 from third_party import string
 from iv_nonce import IVNonce
 
-import logging
 log=logging.getLogger(__name__)
 
-import _thread
 lock = _thread.allocate_lock()
 monitoring = True
 notifications = []
@@ -36,7 +36,6 @@ def unpad(ciphertext: bytes):
         ciphertext (byte string):
         A piece of data with padding that needs to be stripped.
     """
-    pdata_len = len(ciphertext)
     padding_len = ciphertext[-1]
     return ciphertext[:-padding_len]
 
@@ -166,7 +165,7 @@ class atClient:
             log.info("Doing PKAM authentication to {}", self.atsign)
             response, command = send_verb(self.sock, 'from:' + self.atsign)
             if response is None or len(response)<4:
-                raise ATException("Short response")
+                raise atException("Short response")
             challenge = response.replace('@data:', '')
             log.info("atsign pkam challenge : {}", challenge)
             pkamrsa=rsa.PrivateKey(pkamKey[0], pkamKey[1], pkamKey[2], pkamKey[3], pkamKey[4])
@@ -195,7 +194,7 @@ class atClient:
             response, command = send_verb(self.sock, 'llookup:shared_key.' + self.recipient +'@' + self.atsign)
             log.info("Got this response for llookup: {}", response)
             if response is None or len(response)<4:
-                raise ATException("Short response")
+                raise atException("Short response")
             if response.startswith('@' + self.atsign + '@'):
                 response=response.replace('@' + self.atsign + '@','')
                 log.info("Truncated response is: {}", response)
@@ -261,7 +260,7 @@ class atClient:
             response, command = send_verb(self.sock, 'llookup:cached:@' + self.atsign +':shared_key@' + self.recipient)
             log.info("Got this response for llookup: {}", response)
             if response is None or len(response)<4:
-                raise ATException("Short response")
+                raise atException("Short response")
             if response.startswith('@' + self.atsign + '@'):
                 response=response.replace('@' + self.atsign + '@','')
                 log.info("Truncated response is: {}", response)
