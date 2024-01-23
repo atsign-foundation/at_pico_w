@@ -22,7 +22,6 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Install MicroPython and run tests
         run: |
-          set +e
           DLURL="https://github.com/atsign-foundation/micropython/releases/download/"
           ATMPRELDIR="1.22.0_g099e9a1a0_AES_CTR/"
           ATMPRELBIN="micropython_1.22.0_g099e9a1a0_linux_x64.tgz"
@@ -31,10 +30,7 @@ jobs:
           export MICROPY_MICROPYTHON="$(pwd)/micropython"
           cd tests
           ./run-tests.py -d atsign
-          TESTCODE="$?"
-          echo "TESTCODE=$TESTCODE" >> $GITHUB_OUTPUT
           tar -cvzf results.tgz results
-          #exit "$TESTCODE"
       - name: Upload results
         uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4.2.0
         with:
