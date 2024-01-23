@@ -1,0 +1,32 @@
+name: RunTests
+# Runs the workflow on the below events:
+# 1. on pull request raised to trunk branch.
+# 2. on push event to trunk branch.
+on:
+  push:
+    branches:
+      - trunk
+  pull_request:
+    branches:
+      - trunk
+
+permissions:  # added using https://github.com/step-security/secure-workflows
+  contents: read
+
+jobs:
+  lint-markdown:
+    runs-on: ubuntu-latest
+    name: Run Tests
+    steps:
+      - name: checkout repo content
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Install MicroPython and run tests
+        run: |
+          DLURL="https://github.com/atsign-foundation/micropython/releases/download/"
+          ATMPREL="1.20.0_3faded33f_AES_CTR/micropython_1.20.0_3faded33f_linux_x64.tgz"
+          wget ${DLURL}${ATMPREL}
+          tar -xvf ${ATMPREL}
+          export MICROPY_MICROPYTHON="$(pwd)/micropython"
+          cd tests
+          ./run-tests.py -d atsign
+
