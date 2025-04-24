@@ -3,3 +3,10 @@ __pycache__
 built
 settings.json
 version.py
+
+# tests
+micropython
+micropython-coverage
+micropython_1.22.0_g099e9a1a0_linux_x64.tgz
+mpy-cross
+tests/results/_results.json
