@@ -1,13 +1,15 @@
 #import _thread
 import sys
+
 # Needed when running on Linux to find imports in lib directory
 if sys.platform == 'linux':
     sys.path.append('./lib')
-import atclient
 import logging
 import os
 import sys
 import time
+
+import atclient
 import ujson as json
 
 log=logging.getLogger(__name__)
@@ -53,7 +55,7 @@ def write_keys(ssid, password, atSign, atRecipient):
     """Write extracted keys into settings.json"""
     log.info("Writing keys")
     from aes import aes_decrypt
-    from pem_service import get_pem_parameters, get_pem_key
+    from pem_service import get_pem_key, get_pem_parameters
     (aesEncryptPrivateKey, aesEncryptPublicKey, aesPkamPrivateKey,
             aesPkamPublicKey, selfEncryptionKey) = read_keys(atSign)
     pkamPrivateKey = aes_decrypt(aesPkamPrivateKey, selfEncryptionKey)
@@ -78,7 +80,7 @@ def main():
         # Transfer keys from atKeys file to settings
         write_keys(ssid,password,atSign,atRecipient)
     if sys.platform != 'linux':
-        import network # type: ignore
+        import network  # type: ignore
         from ntp_client import sync_time
         wlan = network.WLAN(network.STA_IF)  # type: ignore
         wlan.active(True)

@@ -1,6 +1,8 @@
 import io
-import ubinascii
+
 import uasn1
+import ubinascii
+
 
 def read_pem(input_data):
     """Read PEM formatted input."""

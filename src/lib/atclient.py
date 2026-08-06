@@ -2,15 +2,15 @@ import _thread
 import gc
 import logging
 import time
+
 import ubinascii
 import ucryptolib
-import usocket as socket # type: ignore
-import ussl as ssl # type: ignore
 import ujson as json
-from pem_service import get_pub_parameters
-from third_party import rsa
-from third_party import string
+import usocket as socket  # type: ignore
+import ussl as ssl  # type: ignore
 from iv_nonce import IVNonce
+from pem_service import get_pub_parameters
+from third_party import rsa, string
 
 log=logging.getLogger(__name__)
 
@@ -100,7 +100,7 @@ class atClient:
             rootsock.connect(rootaddr)
             roottls = ssl.wrap_socket(rootsock)
             #rootsock.do_handshake()
-            mb= "{}\n".format(self.atsign).encode("utf-8")
+            mb= f"{self.atsign}\n".encode()
             log.info("sending root request {}", mb)
             roottls.write(mb)
             resp = roottls.readline()

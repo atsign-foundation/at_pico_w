@@ -6,8 +6,9 @@
 # uASN1 is copyright (c) 2007-2021 by the uASN1 authors. See the
 # file "AUTHORS" for a complete overview.
 
-import ubinascii as binascii
 import re
+
+import ubinascii as binascii
 
 Boolean = 0x01
 Integer = 0x02
@@ -31,7 +32,7 @@ class Error(Exception):
     """ASN1 error"""
 
 
-class Encoder(object):
+class Encoder:
     """A ASN.1 encoder. Uses DER encoding."""
 
     def __init__(self):
@@ -226,7 +227,7 @@ class Encoder(object):
         return bytes(result)
 
 
-class Decoder(object):
+class Decoder:
     """A ASN.1 decoder. Understands BER (and DER which is a subset)."""
 
     def __init__(self):
@@ -424,7 +425,6 @@ class Decoder(object):
         """Decode a Null value."""
         if len(bytes_data) != 0:
             raise Error('ASN1 syntax error')
-        return None
 
     def _decode_object_identifier(self, bytes_data):
         """Decode an object identifier."""

@@ -1,5 +1,6 @@
 # from https://github.com/micropython/micropython-lib/blob/master/logging/logging.py
 import sys
+
 import utime
 
 CRITICAL = 50
