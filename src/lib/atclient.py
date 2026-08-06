@@ -163,7 +163,7 @@ class atClient:
         """
         try:
             log.info(f"Doing PKAM authentication to {self.atsign}")
-            response, command = send_verb(self.sock, 'from:' + self.atsign)
+            response, _command = send_verb(self.sock, 'from:' + self.atsign)
             if response is None or len(response)<4:
                 raise atException("Short response")
             challenge = response.replace('@data:', '')
@@ -191,7 +191,7 @@ class atClient:
         """
         try:
             log.info(f"Fetching sharedAESKey for {self.recipient}")
-            response, command = send_verb(self.sock, 'llookup:shared_key.' + self.recipient +'@' + self.atsign)
+            response, _command = send_verb(self.sock, 'llookup:shared_key.' + self.recipient +'@' + self.atsign)
             log.info(f"Got this response for llookup: {response}")
             if response is None or len(response)<4:
                 raise atException("Short response")
@@ -220,10 +220,10 @@ class atClient:
                 encrypted_shared_key = ubinascii.b2a_base64(rsa.encrypt(shared_key, encryptpub)).rstrip().decode()
                 log.info(f"Encrypted shared key {encrypted_shared_key}")
                 # Store the shared key
-                response, command = send_verb(self.sock, 'update:shared_key.' + self.recipient +'@' + self.atsign + ' ' + encrypted_shared_key)
+                response, _command = send_verb(self.sock, 'update:shared_key.' + self.recipient +'@' + self.atsign + ' ' + encrypted_shared_key)
                 log.info(f"Got this response for update: {response}")
                 # Get public key for recipient
-                response, command = send_verb(self.sock, 'plookup:publickey@' + self.recipient)
+                response, _command = send_verb(self.sock, 'plookup:publickey@' + self.recipient)
                 log.info(f"Got this public key: {response}")
                 rpubkey=response.replace('@' + self.atsign + '@data:','')
                 log.info(f"Trimmed public key down to: {rpubkey}")
@@ -240,7 +240,7 @@ class atClient:
                 log.warning(f"No shared key found or created during atsign server {self.server}:{self.port} cnx")
                 self.sock.close()
                 self.sock = None
-                raise Exception("Shared key not found or created")
+                raise RuntimeError("Shared key not found or created")
         except Exception as err:
             log.exc(err, f"during atsign server {self.server}:{self.port} cnx")
             self.sock.close()
@@ -281,7 +281,7 @@ class atClient:
                 log.warning(f"No shared key found or created during atsign server {self.server}:{self.port} cnx")
                 self.sock.close()
                 self.sock = None
-                raise Exception("Shared key not found or created")
+                raise RuntimeError("Shared key not found or created")
         except Exception as err:
             log.exc(err, f"during atsign server {self.server}:{self.port} cnx")
             self.sock.close()
@@ -311,7 +311,7 @@ class atClient:
                 'notify:update:ttr:-1:ivNonce:' + ubinascii.b2a_base64(iv).rstrip().decode() + ':@'+self.recipient+':'+topic+'.'+
                 namespace+'@'+self.atsign+':'+b64encrypted_msg)
             log.info(f"Got this response for publishing: {response}")
-        except Exception as err:
+        except OSError as err:
             log.exc(err, f"during info publish to atsign server {self.server}:{self.port} cnx")
             self.sock.close()
 
@@ -326,9 +326,6 @@ class atClient:
         The namespace being used by the atTalk client (default 'atpicow')
         """
         try:
-            global lock
-            global monitoring
-            global notifications
             # send monitor verb to listen for notifications
             self.sock.write(('monitor' + "\r\n").encode())
             while True:
@@ -353,6 +350,6 @@ class atClient:
                         decrypted_msg_b = aes.decrypt(ubinascii.a2b_base64(notifications[-1]['value'].encode()))
                         decrypted_msg = unpad(decrypted_msg_b).decode('utf-8').rstrip("\v")
                         print(notifications[-1]['from'] + ': ' + decrypted_msg)
-        except Exception as err:
+        except OSError as err:
             log.exc(err, f"during info publish to atsign server {self.server}:{self.port} cnx")
             self.sock.close()

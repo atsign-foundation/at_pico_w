@@ -37,11 +37,11 @@ class Handler:
 class Logger:
 
     level = NOTSET
-    handlers = []
     record = LogRecord()
 
     def __init__(self, name):
         self.name = name
+        self.handlers = []
 
     def _level_str(self, level):
         levelfromdict = _level_dict.get(level)
@@ -66,7 +66,7 @@ class Logger:
                         msg = msg % args
                     else:
                         msg = msg.format(*args)
-                except Exception:
+                except ValueError:
                     msg = msg + '--BAD LOG FORMAT--'
             if self.handlers:
                 d = self.record.__dict__

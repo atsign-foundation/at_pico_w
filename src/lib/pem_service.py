@@ -87,9 +87,7 @@ def prettyprint(input_data, output, indent=0):
 def get_pem_parameters(pem):
     formatted_pem = format_pem(pem)
     input_data = read_pem(formatted_pem)
-    data = []
-    for line in input_data:
-        data.append(line)
+    data = input_data.copy()
     if isinstance(data[0], str):
         data = b''.join(data)
     elif isinstance(data[0], int):
@@ -118,9 +116,7 @@ def get_pem_parameters(pem):
 def get_pub_parameters(pkcs1):
     formatted_pkcs1 = format_pub(pkcs1)
     input_data = read_pem(formatted_pkcs1)
-    data = []
-    for line in input_data:
-        data.append(line)
+    data = input_data.copy()
     if isinstance(data[0], str):
         data = b''.join(data)
     elif isinstance(data[0], int):
@@ -153,9 +149,7 @@ def get_pub_parameters(pkcs1):
 def get_pem_key(pkcs8):
     formatted_pkcs8 = format_pem(pkcs8)
     input_data = read_pem(formatted_pkcs8)
-    data = []
-    for line in input_data:
-        data.append(line)
+    data = input_data.copy()
     if isinstance(data[0], str):
         data = b''.join(data)
     elif isinstance(data[0], int):

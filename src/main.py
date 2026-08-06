@@ -1,4 +1,4 @@
-#import _thread
+import _thread
 import sys
 
 # Needed when running on Linux to find imports in lib directory
@@ -94,7 +94,6 @@ def main():
     connected = False
 
     while True:
-        global lock
         print("Welcome! What would you like to do?\n"
             "\t1) Change recipient atSign (presently " + atRecipient + ")\n"
             "\t2) Connect to " + atSign + "\n"
@@ -120,9 +119,8 @@ def main():
         elif int(opt) == 3:
             if connected:
                 # init second thread to read from socket (monitor)
-                global monitoring
-                monitoring = True
-                #read_thread = _thread.start_new_thread(atc.attalk_recv, ())
+                atclient.monitoring = True
+                _thread.start_new_thread(atc.attalk_recv, ())
                 print('To return to menu type: /exit\n')
                 while True:
                     # print(atSign+":",end='\r')
@@ -132,9 +130,9 @@ def main():
                         break
                     atc.attalk_send(msg=msg)
                 # stop second thread
-                lock.acquire(1)
-                monitoring = False
-                lock.release()
+                atclient.lock.acquire(1)
+                atclient.monitoring = False
+                atclient.lock.release()
                 # join method does not exist in _thread
             else:
                 print("You must connect to " + atSign + " before continuing")
