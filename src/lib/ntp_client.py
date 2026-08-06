@@ -19,7 +19,7 @@ def sync_time():
         if str(e) == '119': # For non-Blocking sockets 119 is EINPROGRESS
             print("In Progress")
         else:
-            raise e
+            raise
     
     s.sendto(NTP_QUERY, a)
     data = s.recv(48)

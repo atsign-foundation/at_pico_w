@@ -56,8 +56,8 @@ def write_keys(ssid, password, atSign, atRecipient):
     log.info("Writing keys")
     from aes import aes_decrypt
     from pem_service import get_pem_key, get_pem_parameters
-    (aesEncryptPrivateKey, aesEncryptPublicKey, aesPkamPrivateKey,
-            aesPkamPublicKey, selfEncryptionKey) = read_keys(atSign)
+    (aesEncryptPrivateKey, _aesEncryptPublicKey, aesPkamPrivateKey,
+            _aesPkamPublicKey, selfEncryptionKey) = read_keys(atSign)
     pkamPrivateKey = aes_decrypt(aesPkamPrivateKey, selfEncryptionKey)
     encryptPrivateKey = aes_decrypt(aesEncryptPrivateKey, selfEncryptionKey)
     pkamKey = get_pem_parameters(get_pem_key(pkamPrivateKey))

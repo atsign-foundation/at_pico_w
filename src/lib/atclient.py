@@ -57,7 +57,7 @@ class atClient:
     """A class for interacting with an atServer using the atProtocol
     """
 
-    def __init__(self, atsign:str=None, recipient:str=None):
+    def __init__(self, atsign:str | None=None, recipient:str | None=None):
         self.sock = None
         self.server = None
         self.port = 0
@@ -110,7 +110,7 @@ class atClient:
             log.info("root response : {}", ret)
         except Exception as err:
             log.exc(err, "during root server {}:{} cnx", rootserver, rootport)
-            raise err
+            raise
         # parse response to get atServer to connect to
         # response may be 'null' -> no such atsign or something like:
         # 779c7c26-f7e2-5e98-a228-cd2ffe9f976d.swarm0002.atsign.zone:5243
@@ -145,13 +145,13 @@ class atClient:
             self.sock.connect(addr)
             self.sock = ssl.wrap_socket(self.sock)
             log.info("Connected OK to atServer {}:{}, info request...", atserver, atport)
-            response, command = send_verb(self.sock, 'info:brief')
+            response, _command = send_verb(self.sock, 'info:brief')
             log.info("atSign info response : {}", response)
         except Exception as err:
             log.exc(err, "During atSign server {}:{} cnx", atserver, atport)
             self.sock.close()
             self.sock = None
-            raise err
+            raise
 
     def authenticate(self, pkamKey):
         """Authenticate with an atServer using a PKAM key
@@ -173,13 +173,13 @@ class atClient:
             # Key manipulation creates a lot of garbage, so let's clear that up now the signature is ready
             gc.collect()
             log.info("atsign pkam signature : {}", signature)
-            response, command = send_verb(self.sock, 'pkam:' + signature)
+            response, _command = send_verb(self.sock, 'pkam:' + signature)
             log.info("atsign pkam authenticated : {}", response)
         except Exception as err:
             log.exc(err, "during atsign server {}:{} cnx", self.server, self.port)
             self.sock.close()
             self.sock = None
-            raise err
+            raise
 
     def getsharedkey(self, privKey):
         """Get the AES shared key to communicate with a recipient atSign
@@ -232,7 +232,7 @@ class atClient:
                 self.receivepub = rsa.PublicKey(rxKey[0], rxKey[1])
                 rencrypted_shared_key = ubinascii.b2a_base64(rsa.encrypt(shared_key, self.receivepub)).rstrip().decode()
                 # Send the shared key
-                response, command = send_verb(self.sock, 'update:ttr:86400:@' + self.recipient + ':shared_key@' + self.atsign + ' ' + rencrypted_shared_key)
+                response, _command = send_verb(self.sock, 'update:ttr:86400:@' + self.recipient + ':shared_key@' + self.atsign + ' ' + rencrypted_shared_key)
                 log.info("Got this response for sharing: {}", response)
                 gc.collect()
             else:
@@ -245,7 +245,7 @@ class atClient:
             log.exc(err, "during atsign server {}:{} cnx", self.server, self.port)
             self.sock.close()
             self.sock = None
-            raise err
+            raise
 
     def getrecipientsharedkey(self, privKey):
         """Get the AES shared key to decrypt messages from a recipient atSign
@@ -257,7 +257,7 @@ class atClient:
         """
         try:
             log.info("Fetching sharedAESKey by {}", self.recipient)
-            response, command = send_verb(self.sock, 'llookup:cached:@' + self.atsign +':shared_key@' + self.recipient)
+            response, _command = send_verb(self.sock, 'llookup:cached:@' + self.atsign +':shared_key@' + self.recipient)
             log.info("Got this response for llookup: {}", response)
             if response is None or len(response)<4:
                 raise atException("Short response")
@@ -286,7 +286,7 @@ class atClient:
             log.exc(err, "during atsign server {}:{} cnx", self.server, self.port)
             self.sock.close()
             self.sock = None
-            raise err
+            raise
 
     def attalk_send(self, msg:bytes, topic:str="attalk", namespace:str="ai6bh"):
         """Send a notification to an atTalk client
@@ -307,7 +307,7 @@ class atClient:
             iv = iv_builder.token_bytes()
             aes = ucryptolib.aes(self.sharedkey, 6, iv)
             b64encrypted_msg = ubinascii.b2a_base64(aes.encrypt(pkcs7pad(msg))).rstrip().decode()
-            response, command = send_verb(self.sock,
+            response, _command = send_verb(self.sock,
                 'notify:update:ttr:-1:ivNonce:' + ubinascii.b2a_base64(iv).rstrip().decode() + ':@'+self.recipient+':'+topic+'.'+
                 namespace+'@'+self.atsign+':'+b64encrypted_msg)
             log.info("Got this response for publishing: {}", response)

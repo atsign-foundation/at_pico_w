@@ -47,7 +47,7 @@ def strid(id):
     elif id == uasn1.Set:
         s = 'SET'
     else:
-        s = '%#02x' % id
+        s = f'{id:#02x}'
     return s
 
 def strclass(id):
@@ -61,12 +61,12 @@ def strclass(id):
     elif id == uasn1.ClassPrivate:
         s = 'PRIVATE'
     else:
-        raise ValueError('Illegal class: %#02x' % id)
+        raise ValueError(f'Illegal class: {id:#02x}')
     return s
 
 def strtag(tag):
     """Return a string represenation of an ASN.1 tag."""
-    return '[%s] %s' % (strid(tag[0]), strclass(tag[2]))
+    return f'[{strid(tag[0])}] {strclass(tag[2])}'
 
 def prettyprint(input_data, output, indent=0):
     """Pretty print ASN.1 data."""
@@ -75,12 +75,11 @@ def prettyprint(input_data, output, indent=0):
         if tag[1] == uasn1.TypePrimitive:
             tag, value = input_data.read()
             output.write(' ' * indent)
-            output.write('[%s] %s (value %s)' %
-                        (strclass(tag[2]), strid(tag[0]), repr(value)))
+            output.write(f'[{strclass(tag[2])}] {strid(tag[0])} (value {value!r})')
             output.write('\n')
         elif tag[1] == uasn1.TypeConstructed:
             output.write(' ' * indent)
-            output.write('[%s] %s:\n' % (strclass(tag[2]), strid(tag[0])))
+            output.write(f'[{strclass(tag[2])}] {strid(tag[0])}:\n')
             input_data.enter()
             prettyprint(input_data, output, indent+2)
             input_data.leave()
