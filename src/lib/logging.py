@@ -1,5 +1,6 @@
 # from https://github.com/micropython/micropython-lib/blob/master/logging/logging.py
 import sys
+
 import utime
 
 CRITICAL = 50
@@ -36,17 +37,17 @@ class Handler:
 class Logger:
 
     level = NOTSET
-    handlers = []
     record = LogRecord()
 
     def __init__(self, name):
         self.name = name
+        self.handlers = []
 
     def _level_str(self, level):
         levelfromdict = _level_dict.get(level)
         if levelfromdict is not None:
             return levelfromdict
-        return "LVL%s" % level
+        return f"LVL{level}"
 
     def setLevel(self, level):
         self.level = level
@@ -65,7 +66,7 @@ class Logger:
                         msg = msg % args
                     else:
                         msg = msg.format(*args)
-                except Exception:
+                except ValueError:
                     msg = msg + '--BAD LOG FORMAT--'
             if self.handlers:
                 d = self.record.__dict__

@@ -6,8 +6,9 @@
 # uASN1 is copyright (c) 2007-2021 by the uASN1 authors. See the
 # file "AUTHORS" for a complete overview.
 
-import ubinascii as binascii
 import re
+
+import ubinascii as binascii
 
 Boolean = 0x01
 Integer = 0x02
@@ -31,7 +32,7 @@ class Error(Exception):
     """ASN1 error"""
 
 
-class Encoder(object):
+class Encoder:
     """A ASN.1 encoder. Uses DER encoding."""
 
     def __init__(self):
@@ -195,7 +196,7 @@ class Encoder(object):
     def _encode_octet_string(self, value):
         """Encode an octetstring."""
         # Use the primitive encoding
-        assert isinstance(value, str) or isinstance(value, bytes)
+        assert isinstance(value, (str, bytes))
         if isinstance(value, str):
             return value.encode('utf-8')
         else:
@@ -226,7 +227,7 @@ class Encoder(object):
         return bytes(result)
 
 
-class Decoder(object):
+class Decoder:
     """A ASN.1 decoder. Understands BER (and DER which is a subset)."""
 
     def __init__(self):
@@ -270,7 +271,7 @@ class Decoder(object):
         """Enter a constructed tag."""
         if self.m_stack is None:
             raise Error('No input selected. Call start() first.')
-        nr, typ, cls = self.peek()
+        _nr, typ, _cls = self.peek()
         if typ != TypeConstructed:
             raise Error('Cannot enter a non-constructed tag.')
         length = self._read_length()
@@ -291,9 +292,7 @@ class Decoder(object):
         """Decode a boolean value."""
         if len(bytes_data) != 1:
             raise Error('ASN1 syntax error')
-        if bytes_data[0] == 0:
-            return False
-        return True
+        return bytes_data[0] != 0
 
     def _read_tag(self):
         """Read a tag from the input."""
@@ -424,7 +423,6 @@ class Decoder(object):
         """Decode a Null value."""
         if len(bytes_data) != 0:
             raise Error('ASN1 syntax error')
-        return None
 
     def _decode_object_identifier(self, bytes_data):
         """Decode an object identifier."""

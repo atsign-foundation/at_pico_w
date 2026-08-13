@@ -1,5 +1,7 @@
 import binascii
+
 import ucryptolib
+
 
 def aes_decrypt(encryptedText, selfEncryptionKey):
     ciphertext = binascii.a2b_base64(encryptedText)

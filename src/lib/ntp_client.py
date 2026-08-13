@@ -1,7 +1,8 @@
-import machine
 import struct
 import time
-import usocket as socket # type: ignore
+
+import machine
+import usocket as socket  # type: ignore
 
 # Substract 1 hour, so we get + 1 hour
 TIMESTAMP_DELTA = 2208988800 - 3600*1 # epoch time - 1 hour
@@ -18,7 +19,7 @@ def sync_time():
         if str(e) == '119': # For non-Blocking sockets 119 is EINPROGRESS
             print("In Progress")
         else:
-            raise e
+            raise
     
     s.sendto(NTP_QUERY, a)
     data = s.recv(48)
